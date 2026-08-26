@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Split Reaction: Neon Rush</title>
+  <meta name="description" content="A fast-paced cyber-neon reflex arcade game with streamlined two-thumb controls, fever mode, and synthwave visuals." />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #040407;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      touch-action: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Outer Wrapper for responsive mobile centering */
+    #game-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      max-width: 420px;
+      max-height: 840px;
+      aspect-ratio: 400 / 750;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #07070b;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 42, 109, 0.08);
+      overflow: hidden;
+    }
+
+    @media (min-width: 450px) and (min-height: 700px) {
+      #game-wrapper {
+        border-radius: 20px;
+        border: 1px solid #1a1a24;
+      }
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    /* Screen Shake Container */
+    .shake-active {
+      animation: screen-shake 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    @keyframes screen-shake {
+      10%, 90% { transform: translate3d(-3px, 1px, 0); }
+      20%, 80% { transform: translate3d(4px, -2px, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, 3px, 0); }
+      40%, 60% { transform: translate3d(5px, -1px, 0); }
+    }
+
+    /* Safe Area Top HUD Container (40px top offset for mobile notches) */
+    .safe-hud-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      padding-top: calc(max(env(safe-area-inset-top), 40px));
+      padding-left: 16px;
+      padding-right: 16px;
+      pointer-events: none;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .hud-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    /* Wave Progress Pill */
+    .wave-badge-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 76px;
+    }
+
+    .wave-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .wave-bar-bg {
+      width: 68px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .wave-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #05d9e8;
+      box-shadow: 0 0 8px #05d9e8;
+      transition: width 0.15s ease;
+    }
+
+    /* Center Score & Multiplier */
+    .score-center-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .main-score {
+      font-size: 42px;
+      font-weight: 900;
+      font-style: italic;
+      line-height: 0.95;
+      letter-spacing: -1px;
+      color: #ffffff;
+      text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+      font-variant-numeric: tabular-nums;
+      transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .main-score.bump {
+      transform: scale(1.22);
+      color: #05d9e8;
+      text-shadow: 0 0 25px #05d9e8;
+    }
+
+    /* Multiplier & Fever Meter */
+    .multiplier-tag {
+      margin-top: 3px;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: rgba(255, 255, 255, 0.8);
+      transition: all 0.2s ease;
+    }
+
+    .multiplier-tag.fever {
+      background: rgba(255, 204, 0, 0.25);
+      border-color: #ffcc00;
+      color: #ffcc00;
+      box-shadow: 0 0 16px rgba(255, 204, 0, 0.6);
+      animation: pulse-fever 0.6s infinite alternate;
+    }
+
+    @keyframes pulse-fever {
+      0% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); }
+      100% { transform: scale(1.1); box-shadow: 0 0 22px rgba(255, 204, 0, 0.9); }
+    }
+
+    /* Fever Charge Dots */
+    .fever-charge-row {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .fever-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      transition: all 0.2s ease;
+    }
+
+    .fever-dot.active {
+      background: #ffcc00;
+      border-color: #ffea75;
+      box-shadow: 0 0 8px #ffcc00;
+      transform: scale(1.2);
+    }
+
+    /* Action Buttons (Sound / Pause) */
+    .hud-controls-wrap {
+      display: flex;
+      gap: 6px;
+      pointer-events: auto;
+    }
+
+    .hud-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: rgba(20, 20, 30, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      backdrop-filter: blur(8px);
+      transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
+    }
+
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+    }
+
+    .hud-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Two-Thumb Animated Touch Guides at Bottom Corners */
+    .touch-guides-container {
+      position: absolute;
+      bottom: 24px;
+      left: 0;
+      width: 100%;
+      padding: 0 18px;
+      display: flex;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 12;
+      transition: opacity 0.5s ease;
+    }
+
+    .thumb-card {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: 14px;
+      background: rgba(14, 14, 20, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      animation: float-thumb 2.5s infinite ease-in-out;
+    }
+
+    .thumb-card.right {
+      animation-delay: 1.25s;
+    }
+
+    @keyframes float-thumb {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .thumb-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #ffffff;
+    }
+
+    .thumb-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .thumb-title {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #ffffff;
+    }
+
+    .thumb-sub {
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.45);
+      text-transform: uppercase;
+    }
+
+    /* Active Tap Feedback Highlights */
+    .tap-zone-highlight {
+      position: absolute;
+      top: 0;
+      width: 50%;
+      height: 100%;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      z-index: 6;
+    }
+
+    #tap-highlight-left {
+      left: 0;
+      background: radial-gradient(circle at 30% 70%, rgba(255, 42, 109, 0.15), transparent 70%);
+    }
+
+    #tap-highlight-right {
+      right: 0;
+      background: radial-gradient(circle at 70% 70%, rgba(5, 217, 232, 0.15), transparent 70%);
+    }
+
+    .tap-zone-highlight.active {
+      opacity: 1;
+    }
+
+    /* Fever Flash Overlay */
+    #fever-flash-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.25), transparent 80%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 8;
+      transition: opacity 0.2s ease;
+    }
+
+    #fever-flash-overlay.active {
+      opacity: 1;
+    }
+
+    /* Modal Screens (Start & Game Over) */
+    .modal-screen {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 6, 10, 0.93);
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 24px;
+      text-align: center;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-screen.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .brand-title {
+      font-size: 38px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -1.5px;
+      line-height: 0.95;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 0 30px rgba(255, 42, 109, 0.7);
+      margin-bottom: 4px;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #05d9e8;
+      text-shadow: 0 0 15px rgba(5, 217, 232, 0.6);
+      margin-bottom: 22px;
+    }
+
+    /* Pulse Play Button */
+    .play-btn-circle {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 2px solid #ffffff;
+      background: rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      margin-bottom: 12px;
+      animation: pulse-start 1.8s infinite ease-in-out;
+      transition: transform 0.15s, background-color 0.2s;
+    }
+
+    .play-btn-circle:hover {
+      transform: scale(1.08);
+      background: rgba(255, 255, 255, 0.15);
+    }
+
+    .play-btn-circle:active {
+      transform: scale(0.94);
+    }
+
+    .play-btn-circle svg {
+      margin-left: 4px;
+      fill: #ffffff;
+    }
+
+    @keyframes pulse-start {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 42, 109, 0.4), 0 0 20px rgba(255, 42, 109, 0.4);
+      }
+      50% {
+        box-shadow: 0 0 0 10px rgba(5, 217, 232, 0), 0 0 35px rgba(5, 217, 232, 0.5);
+      }
+    }
+
+    .tap-start-caption {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      margin-bottom: 24px;
+    }
+
+    /* High score badge on start */
+    .best-badge-start {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      border-radius: 12px;
+      background: rgba(255, 204, 0, 0.1);
+      border: 1px solid rgba(255, 204, 0, 0.3);
+      color: #ffcc00;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+    }
+
+    /* Instructions Box */
+    .instructions-card {
+      width: 100%;
+      background: rgba(14, 14, 20, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .instruction-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .instruction-key {
+      padding: 2px 7px;
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-weight: 800;
+      font-size: 10px;
+      color: #05d9e8;
+      font-family: monospace;
+    }
+
+    /* Game Over Modal Elements */
+    .gameover-score-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .gameover-num {
+      font-size: 72px;
+      font-weight: 900;
+      font-style: italic;
+      color: #ffffff;
+      line-height: 0.95;
+      letter-spacing: -2px;
+      text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .gameover-label {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.45);
+      margin-bottom: 2px;
+    }
+
+    .stats-table {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 22px;
+    }
+
+    .stat-box {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 9px 14px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+    }
+
+    .stat-title {
+      color: rgba(255, 255, 255, 0.6);
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-value {
+      font-weight: 900;
+      color: #05d9e8;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-value.gold {
+      color: #ffcc00;
+    }
+
+    .stat-value.pink {
+      color: #ff2a6d;
+    }
+
+    .retry-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 42px;
+      border-radius: 9999px;
+      border: 1px solid #ffffff;
+      background: transparent;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
+    }
+
+    .retry-btn:hover {
+      background: #ffffff;
+      color: #000000;
+      box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
+    }
+
+    .retry-btn:active {
+      transform: scale(0.96);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrapper">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Tap Zone Visual Feedback Highlight -->
+    <div id="tap-highlight-left" class="tap-zone-highlight"></div>
+    <div id="tap-highlight-right" class="tap-zone-highlight"></div>
+    <div id="fever-flash-overlay"></div>
+
+    <!-- Safe Area Top HUD -->
+    <div class="safe-hud-container">
+      <div class="hud-top-row">
+        <!-- Wave Indicator -->
+        <div class="wave-badge-container">
+          <div id="hud-wave-label" class="wave-label">WAVE 1-1</div>
+          <div class="wave-bar-bg">
+            <div id="hud-wave-bar" class="wave-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Center Score -->
+        <div class="score-center-wrap">
+          <div id="hud-score" class="main-score">0</div>
+          <div id="hud-multiplier" class="multiplier-tag">x1</div>
+          <div class="fever-charge-row" id="fever-dots-row">
+            <div class="fever-dot"></div>
+            <div class="fever-dot"></div>
+            <div class="fever-dot"></div>
+            <div class="fever-dot"></div>
+            <div class="fever-dot"></div>
+          </div>
+        </div>
+
+        <!-- Right Sound / Pause Buttons -->
+        <div class="hud-controls-wrap">
+          <button id="btn-sound" class="hud-btn" title="Toggle Sound" aria-label="Toggle Sound">
+            <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg id="icon-sound-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+          <button id="btn-pause" class="hud-btn" title="Pause Game" aria-label="Pause Game">
+            <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+              <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Animated Two-Thumb Touch Guides (Bottom Corners) -->
+    <div id="touch-guides" class="touch-guides-container">
+      <div class="thumb-card left">
+        <div class="thumb-icon">⇋</div>
+        <div class="thumb-text">
+          <span class="thumb-title">LEFT TAP</span>
+          <span class="thumb-sub">SWAP CORES</span>
+        </div>
+      </div>
+      <div class="thumb-card right">
+        <div class="thumb-text" style="text-align: right;">
+          <span class="thumb-title">RIGHT TAP</span>
+          <span class="thumb-sub">SPLIT / MERGE</span>
+        </div>
+        <div class="thumb-icon">⇹</div>
+      </div>
+    </div>
+
+    <!-- Start Screen Modal -->
+    <div id="screen-start" class="modal-screen visible">
+      <div class="brand-title">SPLIT REACTION</div>
+      <div class="brand-sub">NEON RUSH</div>
+
+      <div id="start-best-badge" class="best-badge-start">
+        <span>★ BEST:</span>
+        <span id="start-best-score">0</span>
+      </div>
+
+      <div class="play-btn-circle" id="btn-start" role="button" aria-label="Start Game">
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path d="M8 5v14l11-7z"></path>
+        </svg>
+      </div>
+      <div class="tap-start-caption">TAP TO START</div>
+
+      <div class="instructions-card">
+        <div class="instruction-row">
+          <span>Swap Left/Right Colors</span>
+          <span class="instruction-key">Left Thumb / [A] / [←]</span>
+        </div>
+        <div class="instruction-row">
+          <span>Split / Merge Lanes</span>
+          <span class="instruction-key">Right Thumb / [D] / [Space]</span>
+        </div>
+        <div class="instruction-row">
+          <span style="color: #ffcc00;">5 Perfect Clears</span>
+          <span class="instruction-key" style="color: #ffcc00; border-color: rgba(255,204,0,0.4);">FEVER MODE (2x)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over Screen Modal -->
+    <div id="screen-gameover" class="modal-screen">
+      <div class="brand-title" style="font-size: 32px; color: #ff2a6d; text-shadow: 0 0 30px #ff2a6d;">CRASHED</div>
+      <div class="brand-sub" style="color: rgba(255,255,255,0.4); margin-bottom: 16px;">CIRCUIT SEVERED</div>
+
+      <div class="gameover-score-wrap">
+        <div class="gameover-label">FINAL SCORE</div>
+        <div id="gameover-score" class="gameover-num">0</div>
+      </div>
+
+      <div class="stats-table">
+        <div class="stat-box">
+          <span class="stat-title">HIGH SCORE</span>
+          <span id="gameover-best" class="stat-value gold">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">GATES CLEARED</span>
+          <span id="gameover-gates" class="stat-value">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">WAVE REACHED</span>
+          <span id="gameover-wave" class="stat-value pink">WAVE 1</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-title">MAX COMBO</span>
+          <span id="gameover-combo" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <button id="btn-restart" class="retry-btn">TAP TO RETRY</button>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ==========================================
+      // VIRTUAL COORDINATE SYSTEM & CONSTANTS
+      // ==========================================
+      const VIRTUAL_WIDTH = 400;
+      const VIRTUAL_HEIGHT = 750;
+      const NUM_LANES = 4;
+      const LANE_WIDTH = VIRTUAL_WIDTH / NUM_LANES; // 100px
+      const LANE_CENTERS = [50, 150, 250, 350]; // 12.5%, 37.5%, 62.5%, 87.5%
+      const PLAYER_Y = VIRTUAL_HEIGHT * 0.78; // 585px
+      const BALL_RADIUS = 13;
+
+      // Speeds
+      const BASE_SPEED = 290;
+      const MAX_SPEED = 780;
+      const FEVER_SPEED_BOOST = 1.35;
+
+      // Colors
+      const COLOR_RED = '#ff2a6d';       // Neon Coral Red
+      const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.6)';
+      const COLOR_BLUE = '#05d9e8';      // Neon Cyan Blue
+      const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.6)';
+      const COLOR_FEVER = '#ffcc00';     // Golden Fever
+      const COLOR_FEVER_GLOW = 'rgba(255, 204, 0, 0.7)';
+      const COLOR_GATE_BG = '#121219';
+      const COLOR_GATE_BORDER = '#22222f';
+
+      // ==========================================
+      // PROCEDURAL WEB AUDIO SYNTHESIZER
+      // ==========================================
+      class WebAudioSynth {
+        constructor() {
+          this.ctx = null;
+          this.masterGain = null;
+          this.muted = localStorage.getItem('split_neon_muted') === 'true';
+        }
+
+        init() {
+          if (this.ctx) return;
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContext) return;
+          this.ctx = new AudioContext();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.value = this.muted ? 0 : 0.28;
+          this.masterGain.connect(this.ctx.destination);
+        }
+
+        resume() {
+          if (!this.ctx) this.init();
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+          }
+        }
+
+        setMuted(mute) {
+          this.muted = mute;
+          localStorage.setItem('split_neon_muted', mute);
+          if (this.masterGain && this.ctx) {
+            this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.28, this.ctx.currentTime);
+          }
+        }
+
+        // Tap toggle click
+        playTap(isSplit) {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'sine';
+            const freq = isSplit ? 620 : 480;
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.05);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.05);
+          } catch (e) {}
+        }
+
+        // Ascending synth blip on gate pass
+        playGatePass(combo = 1, isFever = false) {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5];
+            const noteIdx = Math.min((combo - 1) % scale.length, scale.length - 1);
+            const rootFreq = isFever ? scale[noteIdx] * 1.5 : scale[noteIdx];
+
+            [1, 1.5].forEach((mult, i) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+
+              osc.type = i === 0 ? 'sine' : 'triangle';
+              osc.frequency.setValueAtTime(rootFreq * mult, now);
+              osc.frequency.exponentialRampToValueAtTime(rootFreq * mult * 1.08, now + 0.12);
+
+              gain.gain.setValueAtTime(0.3 / (i + 1), now);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+              osc.connect(gain);
+              gain.connect(this.masterGain);
+
+              osc.start(now);
+              osc.stop(now + 0.14);
+            });
+          } catch (e) {}
+        }
+
+        // Near miss sound
+        playNearMiss() {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(440, now);
+            osc.frequency.linearRampToValueAtTime(554.37, now + 0.1);
+
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.1);
+          } catch (e) {}
+        }
+
+        // Bass drop / power chord on Fever Mode
+        playFeverDrop() {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+
+            // Sub bass drop
+            const sub = this.ctx.createOscillator();
+            const subGain = this.ctx.createGain();
+            sub.type = 'sine';
+            sub.frequency.setValueAtTime(180, now);
+            sub.frequency.exponentialRampToValueAtTime(45, now + 0.5);
+
+            subGain.gain.setValueAtTime(0.6, now);
+            subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+            sub.connect(subGain);
+            subGain.connect(this.masterGain);
+
+            sub.start(now);
+            sub.stop(now + 0.5);
+
+            // Power chord
+            [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(f, now + i * 0.03);
+
+              gain.gain.setValueAtTime(0.25, now + i * 0.03);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.03 + 0.4);
+
+              osc.connect(gain);
+              gain.connect(this.masterGain);
+
+              osc.start(now + i * 0.03);
+              osc.stop(now + i * 0.03 + 0.4);
+            });
+          } catch (e) {}
+        }
+
+        // Deep low-pass static crunch on death
+        playDeath() {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+
+            // Saw down-sweep
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.45);
+
+            gain.gain.setValueAtTime(0.7, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.45);
+
+            // Noise buffer static crunch
+            const bufferSize = this.ctx.sampleRate * 0.3;
+            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.08));
+            }
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(800, now);
+            filter.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+
+            const noiseGain = this.ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.6, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+
+            noise.connect(filter);
+            filter.connect(noiseGain);
+            noiseGain.connect(this.masterGain);
+
+            noise.start(now);
+            noise.stop(now + 0.3);
+          } catch (e) {}
+        }
+      }
+
+      const audio = new WebAudioSynth();
+
+      // Mobile Haptics Wrapper
+      function triggerHaptic(pattern) {
+        if ('vibrate' in navigator) {
+          try {
+            navigator.vibrate(pattern);
+          } catch (e) {}
+        }
+      }
+
+      // ==========================================
+      // PARTICLE & FLOATING TEXT ENGINE
+      // ==========================================
+      class Particle {
+        constructor(x, y, color, vx, vy, size, life, isFever = false) {
+          this.x = x;
+          this.y = y;
+          this.color = color;
+          this.vx = vx;
+          this.vy = vy;
+          this.size = size;
+          this.maxLife = life;
+          this.life = life;
+          this.isFever = isFever;
+        }
+
+        update(dt) {
+          this.x += this.vx * dt;
+          this.y += this.vy * dt;
+          this.vx *= 0.94;
+          this.vy *= 0.94;
+          this.life -= dt;
+          return this.life > 0;
+        }
+
+        draw(ctx) {
+          const progress = Math.max(0, this.life / this.maxLife);
+          ctx.save();
+          ctx.globalAlpha = progress;
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = this.isFever ? 12 : 6;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, Math.max(0.5, this.size * progress), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+      }
+
+      class FloatingText {
+        constructor(text, x, y, color, size = 16) {
+          this.text = text;
+          this.x = x;
+          this.y = y;
+          this.color = color;
+          this.size = size;
+          this.life = 0.7;
+          this.maxLife = 0.7;
+        }
+
+        update(dt) {
+          this.y -= 45 * dt;
+          this.life -= dt;
+          return this.life > 0;
+        }
+
+        draw(ctx) {
+          const progress = Math.max(0, this.life / this.maxLife);
+          ctx.save();
+          ctx.globalAlpha = progress;
+          ctx.font = `900 italic ${this.size}px -apple-system, sans-serif`;
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 10;
+          ctx.textAlign = 'center';
+          ctx.fillText(this.text, this.x, this.y);
+          ctx.restore();
+        }
+      }
+
+      // ==========================================
+      // LASER GATE OBSTACLE CLASS
+      // ==========================================
+      class LaserGate {
+        constructor(y, laneRed, laneBlue) {
+          this.y = y;
+          this.height = 32;
+          this.laneRed = laneRed;   // Lane 0..3
+          this.laneBlue = laneBlue; // Lane 0..3
+          this.passed = false;
+          this.failed = false;
+          this.destroyedByFever = false;
+        }
+
+        update(dt, speed) {
+          this.y += speed * dt;
+        }
+
+        draw(ctx, isFever) {
+          const y = this.y;
+          const h = this.height;
+
+          ctx.save();
+
+          // Dark horizontal laser wall base
+          ctx.fillStyle = isFever ? 'rgba(30, 25, 10, 0.85)' : COLOR_GATE_BG;
+          ctx.fillRect(0, y, VIRTUAL_WIDTH, h);
+
+          // Top/bottom edge borders
+          ctx.strokeStyle = isFever ? 'rgba(255, 204, 0, 0.4)' : COLOR_GATE_BORDER;
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(VIRTUAL_WIDTH, y);
+          ctx.moveTo(0, y + h);
+          ctx.lineTo(VIRTUAL_WIDTH, y + h);
+          ctx.stroke();
+
+          // Colored Gate Openings
+          const drawOpening = (laneIndex, color, glowColor) => {
+            const laneX = laneIndex * LANE_WIDTH;
+            const gateWidth = 56;
+            const gateOffset = (LANE_WIDTH - gateWidth) / 2;
+            const gx = laneX + gateOffset;
+
+            // Clear cutout slot
+            ctx.clearRect(gx, y - 2, gateWidth, h + 4);
+
+            // Colored opening beam
+            ctx.fillStyle = color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)';
+            ctx.fillRect(gx, y, gateWidth, h);
+
+            // Laser core bar
+            ctx.fillStyle = color;
+            ctx.shadowColor = glowColor;
+            ctx.shadowBlur = 10;
+            ctx.fillRect(gx + 6, y + h / 2 - 3, gateWidth - 12, 6);
+
+            // Left / Right laser emitter brackets
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(gx, y - 1);
+            ctx.lineTo(gx, y + h + 1);
+            ctx.moveTo(gx + gateWidth, y - 1);
+            ctx.lineTo(gx + gateWidth, y + h + 1);
+            ctx.stroke();
+          };
+
+          drawOpening(this.laneRed, COLOR_RED, COLOR_RED_GLOW);
+          drawOpening(this.laneBlue, COLOR_BLUE, COLOR_BLUE_GLOW);
+
+          ctx.restore();
+        }
+      }
+
+      // ==========================================
+      // MAIN GAME ENGINE
+      // ==========================================
+      class NeonRushGame {
+        constructor() {
+          this.canvas = document.getElementById('game-canvas');
+          this.ctx = this.canvas.getContext('2d');
+          this.wrapper = document.getElementById('game-wrapper');
+
+          // DOM UI Elements
+          this.hudScore = document.getElementById('hud-score');
+          this.hudMultiplier = document.getElementById('hud-multiplier');
+          this.hudWaveLabel = document.getElementById('hud-wave-label');
+          this.hudWaveBar = document.getElementById('hud-wave-bar');
+          this.feverDotsRow = document.getElementById('fever-dots-row');
+          this.feverDots = this.feverDotsRow.querySelectorAll('.fever-dot');
+          this.touchGuides = document.getElementById('touch-guides');
+          this.highlightLeft = document.getElementById('tap-highlight-left');
+          this.highlightRight = document.getElementById('tap-highlight-right');
+          this.feverOverlay = document.getElementById('fever-flash-overlay');
+
+          // Screens
+          this.screenStart = document.getElementById('screen-start');
+          this.screenGameOver = document.getElementById('screen-gameover');
+          this.startBestScore = document.getElementById('start-best-score');
+          this.gameoverScore = document.getElementById('gameover-score');
+          this.gameoverBest = document.getElementById('gameover-best');
+          this.gameoverGates = document.getElementById('gameover-gates');
+          this.gameoverWave = document.getElementById('gameover-wave');
+          this.gameoverCombo = document.getElementById('gameover-combo');
+
+          // Buttons
+          this.btnStart = document.getElementById('btn-start');
+          this.btnRestart = document.getElementById('btn-restart');
+          this.btnSound = document.getElementById('btn-sound');
+          this.btnPause = document.getElementById('btn-pause');
+          this.iconSoundOn = document.getElementById('icon-sound-on');
+          this.iconSoundOff = document.getElementById('icon-sound-off');
+          this.iconPause = document.getElementById('icon-pause');
+
+          // Storage
+          this.highScore = parseInt(localStorage.getItem('split_neon_best') || '0', 10);
+          this.startBestScore.textContent = this.highScore;
+
+          // Game State Machine: 'START' | 'PLAYING' | 'PAUSED' | 'GAMEOVER'
+          this.gameState = 'START';
+
+          // Two-Thumb Toggles
+          this.isSwapped = false; // false: Red Left / Blue Right | true: Blue Left / Red Right
+          this.isSplit = false;   // false: Inner Lanes [1, 2] | true: Outer Lanes [0, 3]
+
+          // Balls
+          this.ballRed = { x: LANE_CENTERS[1], targetX: LANE_CENTERS[1], color: COLOR_RED, glow: COLOR_RED_GLOW };
+          this.ballBlue = { x: LANE_CENTERS[2], targetX: LANE_CENTERS[2], color: COLOR_BLUE, glow: COLOR_BLUE_GLOW };
+
+          // Gameplay Metrics
+          this.score = 0;
+          this.combo = 0;
+          this.maxCombo = 0;
+          this.perfectStreak = 0; // for 5-combo fever meter
+          this.gatesPassed = 0;
+          this.gameTime = 0;
+          this.speed = BASE_SPEED;
+
+          // Fever Mode Engine
+          this.isFeverActive = false;
+          this.feverTimer = 0;
+          this.feverDuration = 4.0; // 4 seconds
+
+          // Wave Progression Engine
+          // Wave Cycle: 1: Normal Cruise (7 gates), 2: Fast Cluster (5 gates), 3: Breather (2s open straight)
+          this.waveMajor = 1;
+          this.waveSub = 1; // 1, 2, or 3
+          this.waveGateCount = 0;
+          this.waveGatesTarget = 7;
+          this.breatherTimer = 0;
+
+          // Entities
+          this.gates = [];
+          this.particles = [];
+          this.floatingTexts = [];
+
+          // Spawning
+          this.distanceSinceLastGate = 0;
+          this.nextGateDistance = 330;
+          this.lastGateConfig = null;
+
+          // Visual FX
+          this.gridOffset = 0;
+          this.touchGuideTimer = 6.0; // Show for initial 6s
+          this.deathSlowMo = 0;
+
+          // Render Setup
+          this.lastTime = performance.now();
+          this.setupCanvasDPR();
+          window.addEventListener('resize', () => this.setupCanvasDPR());
+          this.bindControls();
+          this.updateSoundIcons();
+
+          requestAnimationFrame((t) => this.loop(t));
+        }
+
+        setupCanvasDPR() {
+          const dpr = window.devicePixelRatio || 1;
+          this.canvas.width = VIRTUAL_WIDTH * dpr;
+          this.canvas.height = VIRTUAL_HEIGHT * dpr;
+          this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+          this.ctx.scale(dpr, dpr);
+        }
+
+        updateSoundIcons() {
+          if (audio.muted) {
+            this.iconSoundOn.style.display = 'none';
+            this.iconSoundOff.style.display = 'block';
+          } else {
+            this.iconSoundOn.style.display = 'block';
+            this.iconSoundOff.style.display = 'none';
+          }
+        }
+
+        // Resolve Target X based on Two-Thumb Toggles
+        resolveTargetPositions() {
+          let laneRed, laneBlue;
+
+          if (!this.isSplit) {
+            // Inner Lanes [1, 2]
+            laneRed = this.isSwapped ? 2 : 1;
+            laneBlue = this.isSwapped ? 1 : 2;
+          } else {
+            // Outer Lanes [0, 3]
+            laneRed = this.isSwapped ? 3 : 0;
+            laneBlue = this.isSwapped ? 0 : 3;
+          }
+
+          this.ballRed.targetX = LANE_CENTERS[laneRed];
+          this.ballBlue.targetX = LANE_CENTERS[laneBlue];
+        }
+
+        // ==========================================
+        // STREAMLINED TWO-THUMB CONTROLS
+        // ==========================================
+        toggleSwap() {
+          if (this.gameState !== 'PLAYING') return;
+          this.isSwapped = !this.isSwapped;
+          this.resolveTargetPositions();
+          audio.playTap(false);
+          this.spawnTapBurst(this.ballRed.x, this.ballBlue.x);
+
+          // Tap Highlight Left
+          this.highlightLeft.classList.add('active');
+          setTimeout(() => this.highlightLeft.classList.remove('active'), 120);
+        }
+
+        toggleSplit() {
+          if (this.gameState !== 'PLAYING') return;
+          this.isSplit = !this.isSplit;
+          this.resolveTargetPositions();
+          audio.playTap(true);
+          this.spawnTapBurst(this.ballRed.x, this.ballBlue.x);
+
+          // Tap Highlight Right
+          this.highlightRight.classList.add('active');
+          setTimeout(() => this.highlightRight.classList.remove('active'), 120);
+        }
+
+        spawnTapBurst(x1, x2) {
+          for (let i = 0; i < 4; i++) {
+            this.particles.push(
+              new Particle(x1, PLAYER_Y, COLOR_RED, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 2.5, 0.25),
+              new Particle(x2, PLAYER_Y, COLOR_BLUE, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 2.5, 0.25)
+            );
+          }
+        }
+
+        bindControls() {
+          this.btnStart.addEventListener('click', () => this.startGame());
+          this.btnRestart.addEventListener('click', () => this.startGame());
+
+          this.btnSound.addEventListener('click', (e) => {
+            e.stopPropagation();
+            audio.resume();
+            audio.setMuted(!audio.muted);
+            this.updateSoundIcons();
+          });
+
+          this.btnPause.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (this.gameState === 'PLAYING') {
+              this.gameState = 'PAUSED';
+              this.iconPause.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+            } else if (this.gameState === 'PAUSED') {
+              this.gameState = 'PLAYING';
+              this.iconPause.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>';
+              this.lastTime = performance.now();
+            }
+          });
+
+          // Keyboard Desktop Fallbacks
+          window.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            audio.resume();
+
+            if (this.gameState === 'START' || this.gameState === 'GAMEOVER') {
+              if (e.code === 'Space' || e.code === 'Enter') {
+                this.startGame();
+                return;
+              }
+            }
+
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+              this.toggleSwap();
+            } else if (e.code === 'ArrowRight' || e.code === 'KeyD' || e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+              this.toggleSplit();
+            } else if (e.code === 'KeyM') {
+              audio.setMuted(!audio.muted);
+              this.updateSoundIcons();
+            }
+          });
+
+          // Low-Latency Zero-Delay Pointer & Touch Zone Listeners
+          const handleZoneTap = (clientX) => {
+            audio.resume();
+            if (this.gameState === 'START') {
+              this.startGame();
+              return;
+            }
+            if (this.gameState !== 'PLAYING') return;
+
+            const rect = this.wrapper.getBoundingClientRect();
+            const tapX = clientX - rect.left;
+            const ratio = tapX / rect.width;
+
+            if (ratio < 0.5) {
+              this.toggleSwap();
+            } else {
+              this.toggleSplit();
+            }
+          };
+
+          this.wrapper.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+              handleZoneTap(e.changedTouches[i].clientX);
+            }
+          }, { passive: false });
+
+          this.wrapper.addEventListener('mousedown', (e) => {
+            // Avoid triggering when clicking buttons directly
+            if (e.target.closest('.hud-controls-wrap') || e.target.closest('.modal-screen')) return;
+            handleZoneTap(e.clientX);
+          });
+        }
+
+        startGame() {
+          audio.resume();
+          this.gameState = 'PLAYING';
+          this.score = 0;
+          this.combo = 0;
+          this.maxCombo = 0;
+          this.perfectStreak = 0;
+          this.gatesPassed = 0;
+          this.gameTime = 0;
+          this.speed = BASE_SPEED;
+
+          this.isSwapped = false;
+          this.isSplit = false;
+          this.resolveTargetPositions();
+          this.ballRed.x = this.ballRed.targetX;
+          this.ballBlue.x = this.ballBlue.targetX;
+
+          this.isFeverActive = false;
+          this.feverTimer = 0;
+
+          this.waveMajor = 1;
+          this.waveSub = 1;
+          this.waveGateCount = 0;
+          this.waveGatesTarget = 6;
+          this.breatherTimer = 0;
+
+          this.gates = [];
+          this.particles = [];
+          this.floatingTexts = [];
+          this.distanceSinceLastGate = 0;
+          this.nextGateDistance = 340;
+          this.lastGateConfig = null;
+          this.touchGuideTimer = 6.0;
+
+          this.updateHUD();
+          this.screenStart.classList.remove('visible');
+          this.screenGameOver.classList.remove('visible');
+          this.feverOverlay.classList.remove('active');
+
+          // Initial friendly obstacle
+          this.spawnGate(1, 2, -40);
+          this.lastTime = performance.now();
+        }
+
+        triggerFeverMode() {
+          this.isFeverActive = true;
+          this.feverTimer = this.feverDuration;
+          this.feverOverlay.classList.add('active');
+
+          audio.playFeverDrop();
+          triggerHaptic([30, 40, 50]);
+
+          this.floatingTexts.push(
+            new FloatingText('FEVER MODE ACTIVATED!', VIRTUAL_WIDTH / 2, PLAYER_Y - 45, COLOR_FEVER, 22)
+          );
+
+          // Golden Shockwave
+          for (let i = 0; i < 35; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const spd = 100 + Math.random() * 280;
+            this.particles.push(
+              new Particle(
+                VIRTUAL_WIDTH / 2,
+                PLAYER_Y,
+                COLOR_FEVER,
+                Math.cos(angle) * spd,
+                Math.sin(angle) * spd,
+                3.5 + Math.random() * 4,
+                0.6,
+                true
+              )
+            );
+          }
+
+          this.updateHUD();
+        }
+
+        endFeverMode() {
+          this.isFeverActive = false;
+          this.feverTimer = 0;
+          this.perfectStreak = 0;
+          this.feverOverlay.classList.remove('active');
+          this.updateHUD();
+        }
+
+        triggerGameOver() {
+          this.gameState = 'GAMEOVER';
+          audio.playDeath();
+          triggerHaptic([50, 30, 80]);
+
+          // Screen Shake
+          this.wrapper.classList.add('shake-active');
+          setTimeout(() => this.wrapper.classList.remove('shake-active'), 250);
+
+          // Ball disintegration burst
+          for (let i = 0; i < 40; i++) {
+            const angleA = Math.random() * Math.PI * 2;
+            const spdA = 60 + Math.random() * 260;
+            this.particles.push(
+              new Particle(this.ballRed.x, PLAYER_Y, COLOR_RED, Math.cos(angleA) * spdA, Math.sin(angleA) * spdA, 3 + Math.random() * 5, 0.6)
+            );
+
+            const angleB = Math.random() * Math.PI * 2;
+            const spdB = 60 + Math.random() * 260;
+            this.particles.push(
+              new Particle(this.ballBlue.x, PLAYER_Y, COLOR_BLUE, Math.cos(angleB) * spdB, Math.sin(angleB) * spdB, 3 + Math.random() * 5, 0.6)
+            );
+          }
+
+          if (this.score > this.highScore) {
+            this.highScore = this.score;
+            localStorage.setItem('split_neon_best', this.highScore);
+          }
+
+          this.gameoverScore.textContent = this.score;
+          this.gameoverBest.textContent = this.highScore;
+          this.gameoverGates.textContent = this.gatesPassed;
+          this.gameoverWave.textContent = `WAVE ${this.waveMajor}-${this.waveSub}`;
+          this.gameoverCombo.textContent = this.maxCombo;
+
+          setTimeout(() => {
+            this.screenGameOver.classList.add('visible');
+            this.feverOverlay.classList.remove('active');
+          }, 350);
+        }
+
+        spawnGate(forceRed = null, forceBlue = null, customY = -30) {
+          // 4 possible valid configurations
+          const configs = [
+            { r: 1, b: 2 }, // Parallel
+            { r: 0, b: 3 }, // Split
+            { r: 2, b: 1 }, // Swapped Parallel
+            { r: 3, b: 0 }  // Swapped Split
+          ];
+
+          let choice;
+          if (forceRed !== null && forceBlue !== null) {
+            choice = { r: forceRed, b: forceBlue };
+          } else {
+            const pool = configs.filter(c => !this.lastGateConfig || (c.r !== this.lastGateConfig.r || c.b !== this.lastGateConfig.b));
+            choice = pool[Math.floor(Math.random() * pool.length)];
+          }
+
+          this.lastGateConfig = choice;
+          const gate = new LaserGate(customY, choice.r, choice.b);
+          this.gates.push(gate);
+
+          this.distanceSinceLastGate = 0;
+
+          // Next gate spacing depends on wave and speed
+          const baseSpacing = (this.waveSub === 2) ? 220 : 310;
+          this.nextGateDistance = Math.max(180, baseSpacing - (this.speed - BASE_SPEED) * 0.25);
+        }
+
+        updateHUD() {
+          this.hudScore.textContent = this.score;
+          this.hudScore.classList.add('bump');
+          setTimeout(() => this.hudScore.classList.remove('bump'), 100);
+
+          if (this.isFeverActive) {
+            this.hudMultiplier.textContent = 'FEVER 2x';
+            this.hudMultiplier.className = 'multiplier-tag fever';
+          } else {
+            const mult = 1 + Math.floor(this.combo / 4);
+            this.hudMultiplier.textContent = `x${mult}`;
+            this.hudMultiplier.className = 'multiplier-tag';
+          }
+
+          // Update Fever charge dots (0 to 5)
+          const dotsActive = this.isFeverActive ? 5 : this.perfectStreak;
+          this.feverDots.forEach((dot, idx) => {
+            dot.classList.toggle('active', idx < dotsActive);
+          });
+
+          // Update Wave Info
+          const subText = this.waveSub === 3 ? 'BREATHER' : `${this.waveSub}`;
+          this.hudWaveLabel.textContent = `WAVE ${this.waveMajor}-${subText}`;
+          const progress = this.waveSub === 3 ? (1 - this.breatherTimer / 2.0) : (this.waveGateCount / this.waveGatesTarget);
+          this.hudWaveBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
+        }
+
+        update(dt) {
+          if (this.gameState !== 'PLAYING') return;
+
+          this.gameTime += dt;
+
+          // Touch guide fade timer
+          if (this.touchGuideTimer > 0) {
+            this.touchGuideTimer -= dt;
+            if (this.touchGuideTimer <= 0) {
+              this.touchGuides.style.opacity = '0.35';
+            }
+          }
+
+          // Fever Mode Countdown
+          if (this.isFeverActive) {
+            this.feverTimer -= dt;
+            if (this.feverTimer <= 0) {
+              this.endFeverMode();
+            }
+          }
+
+          // Speed Calculation with Wave Ramping
+          const baselineSpeed = BASE_SPEED + (this.waveMajor - 1) * 30 + Math.min(200, this.gameTime * 2.5);
+          const waveSpeedMult = (this.waveSub === 2) ? 1.15 : (this.waveSub === 3 ? 0.9 : 1.0);
+          const feverMult = this.isFeverActive ? FEVER_SPEED_BOOST : 1.0;
+          this.speed = Math.min(MAX_SPEED, baselineSpeed * waveSpeedMult * feverMult);
+
+          // Background Scrolling Grid
+          this.gridOffset = (this.gridOffset + this.speed * dt) % 40;
+
+          // Snappy Exponential Ball Lerp (~60ms transition)
+          const lerpFactor = 1 - Math.exp(-dt * 38);
+          this.ballRed.x += (this.ballRed.targetX - this.ballRed.x) * lerpFactor;
+          this.ballBlue.x += (this.ballBlue.targetX - this.ballBlue.x) * lerpFactor;
+
+          // Continuous Flowing Trail Particles
+          const trailColorRed = this.isFeverActive ? COLOR_FEVER : COLOR_RED;
+          const trailColorBlue = this.isFeverActive ? COLOR_FEVER : COLOR_BLUE;
+
+          this.particles.push(
+            new Particle(this.ballRed.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, trailColorRed, (Math.random() - 0.5) * 12, 35 + Math.random() * 30, 2.5, 0.22, this.isFeverActive),
+            new Particle(this.ballBlue.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, trailColorBlue, (Math.random() - 0.5) * 12, 35 + Math.random() * 30, 2.5, 0.22, this.isFeverActive)
+          );
+
+          // Wave Progression Logic
+          if (this.waveSub === 3) {
+            // Breather Phase
+            this.breatherTimer -= dt;
+            if (this.breatherTimer <= 0) {
+              this.waveMajor++;
+              this.waveSub = 1;
+              this.waveGateCount = 0;
+              this.waveGatesTarget = 6 + this.waveMajor;
+              this.updateHUD();
+            }
+          } else {
+            // Normal Spawning Phase
+            this.distanceSinceLastGate += this.speed * dt;
+            if (this.distanceSinceLastGate >= this.nextGateDistance) {
+              this.spawnGate();
+              this.waveGateCount++;
+              this.updateHUD();
+
+              if (this.waveGateCount >= this.waveGatesTarget) {
+                if (this.waveSub === 1) {
+                  this.waveSub = 2; // Move to fast cluster
+                  this.waveGateCount = 0;
+                  this.waveGatesTarget = 5;
+                  this.updateHUD();
+                } else if (this.waveSub === 2) {
+                  this.waveSub = 3; // Move to breather
+                  this.breatherTimer = 2.0;
+                  this.updateHUD();
+                }
+              }
+            }
+          }
+
+          // Laser Gates Collision & Clear Checking
+          for (let i = this.gates.length - 1; i >= 0; i--) {
+            const gate = this.gates[i];
+            gate.update(dt, this.speed);
+
+            const gateTop = gate.y;
+            const gateBottom = gate.y + gate.height;
+            const gateCenterY = gate.y + gate.height / 2;
+
+            if (!gate.passed && !gate.failed) {
+              if (gateBottom >= PLAYER_Y - BALL_RADIUS && gateTop <= PLAYER_Y + BALL_RADIUS) {
+                const targetRedX = LANE_CENTERS[gate.laneRed];
+                const targetBlueX = LANE_CENTERS[gate.laneBlue];
+
+                const diffRed = Math.abs(this.ballRed.x - targetRedX);
+                const diffBlue = Math.abs(this.ballBlue.x - targetBlueX);
+
+                const NEAR_MISS_BUFFER = 32; // ±12px forgiveness on 20px window
+                const PERFECT_THRESHOLD = 18;
+
+                if (gateCenterY >= PLAYER_Y) {
+                  if (this.isFeverActive) {
+                    // Invincible Phase-Through in Fever Mode
+                    gate.passed = true;
+                    this.gatesPassed++;
+                    this.score += 2;
+                    this.combo++;
+                    if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+
+                    audio.playGatePass(this.combo, true);
+                    triggerHaptic([15]);
+                    this.updateHUD();
+
+                    // Shatter gate into gold
+                    for (let p = 0; p < 16; p++) {
+                      this.particles.push(
+                        new Particle(
+                          targetRedX + (Math.random() - 0.5) * 30,
+                          PLAYER_Y,
+                          COLOR_FEVER,
+                          (Math.random() - 0.5) * 120,
+                          (Math.random() - 0.5) * 100,
+                          3,
+                          0.3,
+                          true
+                        )
+                      );
+                    }
+                  } else if (diffRed <= NEAR_MISS_BUFFER && diffBlue <= NEAR_MISS_BUFFER) {
+                    gate.passed = true;
+                    this.gatesPassed++;
+                    this.combo++;
+                    if (this.combo > this.maxCombo) this.maxCombo = this.combo;
+
+                    const isPerfect = (diffRed <= PERFECT_THRESHOLD && diffBlue <= PERFECT_THRESHOLD);
+                    const mult = 1 + Math.floor(this.combo / 4);
+
+                    if (isPerfect) {
+                      this.score += mult;
+                      this.perfectStreak++;
+                      audio.playGatePass(this.combo, false);
+                      triggerHaptic([15]);
+
+                      if (this.perfectStreak >= 5) {
+                        this.triggerFeverMode();
+                      }
+                    } else {
+                      // Near Miss Forgiveness
+                      this.score += 1;
+                      this.perfectStreak = 0; // resets fever meter
+                      audio.playNearMiss();
+                      triggerHaptic([20]);
+                      this.floatingTexts.push(
+                        new FloatingText('NEAR MISS! +1', VIRTUAL_WIDTH / 2, PLAYER_Y - 30, '#ffea75', 14)
+                      );
+                    }
+
+                    this.updateHUD();
+                  } else {
+                    gate.failed = true;
+                    this.triggerGameOver();
+                    return;
+                  }
+                }
+              }
+            }
+
+            if (gate.y > VIRTUAL_HEIGHT + 50) {
+              this.gates.splice(i, 1);
+            }
+          }
+
+          // Update Particles & Floating Text
+          for (let i = this.particles.length - 1; i >= 0; i--) {
+            if (!this.particles[i].update(dt)) {
+              this.particles.splice(i, 1);
+            }
+          }
+
+          for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            if (!this.floatingTexts[i].update(dt)) {
+              this.floatingTexts.splice(i, 1);
+            }
+          }
+        }
+
+        draw() {
+          const ctx = this.ctx;
+          ctx.save();
+
+          // Clear Background
+          ctx.fillStyle = '#06060a';
+          ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+          // 1. Cyber Grid & Vertical Track Dividers
+          this.drawCyberTracks(ctx);
+
+          // 2. Gates
+          for (const gate of this.gates) {
+            gate.draw(ctx, this.isFeverActive);
+          }
+
+          // 3. Lane Center Markers
+          this.drawLaneMarkers(ctx);
+
+          // 4. Particles
+          for (const p of this.particles) {
+            p.draw(ctx);
+          }
+
+          // 5. Player Balls
+          this.drawPlayerBalls(ctx);
+
+          // 6. Floating Text
+          for (const ft of this.floatingTexts) {
+            ft.draw(ctx);
+          }
+
+          ctx.restore();
+        }
+
+        drawCyberTracks(ctx) {
+          ctx.save();
+
+          // Horizontal Scrolling Lines
+          ctx.strokeStyle = this.isFeverActive ? 'rgba(255, 204, 0, 0.07)' : 'rgba(255, 255, 255, 0.025)';
+          ctx.lineWidth = 1;
+          for (let y = this.gridOffset; y < VIRTUAL_HEIGHT; y += 40) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(VIRTUAL_WIDTH, y);
+            ctx.stroke();
+          }
+
+          // 4 Vertical Tracks
+          for (let i = 1; i < NUM_LANES; i++) {
+            const x = i * LANE_WIDTH;
+            ctx.strokeStyle = (i === 2)
+              ? (this.isFeverActive ? 'rgba(255, 204, 0, 0.2)' : 'rgba(255, 255, 255, 0.1)')
+              : (this.isFeverActive ? 'rgba(255, 204, 0, 0.08)' : 'rgba(255, 255, 255, 0.035)');
+            ctx.lineWidth = (i === 2) ? 1.5 : 1;
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, VIRTUAL_HEIGHT);
+            ctx.stroke();
+          }
+
+          ctx.restore();
+        }
+
+        drawLaneMarkers(ctx) {
+          ctx.save();
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 6]);
+          ctx.beginPath();
+          ctx.moveTo(10, PLAYER_Y);
+          ctx.lineTo(VIRTUAL_WIDTH - 10, PLAYER_Y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          for (let i = 0; i < NUM_LANES; i++) {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.beginPath();
+            ctx.arc(LANE_CENTERS[i], PLAYER_Y, 14, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+
+        drawPlayerBalls(ctx) {
+          const drawBall = (ball) => {
+            const x = ball.x;
+            const y = PLAYER_Y;
+            const activeColor = this.isFeverActive ? COLOR_FEVER : ball.color;
+            const activeGlow = this.isFeverActive ? COLOR_FEVER_GLOW : ball.glow;
+
+            ctx.save();
+
+            // Glowing Outer Ring
+            ctx.strokeStyle = activeColor;
+            ctx.shadowColor = activeGlow;
+            ctx.shadowBlur = this.isFeverActive ? 22 : 14;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(x, y, BALL_RADIUS + 3.5, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Solid Core
+            ctx.fillStyle = activeColor;
+            ctx.beginPath();
+            ctx.arc(x, y, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Specular Highlight
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(x - 3.5, y - 3.5, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+          };
+
+          drawBall(this.ballRed);
+          drawBall(this.ballBlue);
+        }
+
+        loop(time) {
+          const dt = Math.min(0.05, (time - this.lastTime) / 1000);
+          this.lastTime = time;
+
+          this.update(dt);
+          this.draw();
+
+          requestAnimationFrame((t) => this.loop(t));
+        }
+      }
+
+      // Initialize on load
+      window.addEventListener('DOMContentLoaded', () => {
+        window.splitReactionGame = new NeonRushGame();
+      });
+    })();
+  </script>
+</body>
+</html>
