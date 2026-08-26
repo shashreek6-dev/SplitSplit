@@ -1,0 +1,6 @@
+{
+  "name": "Split Reaction",
+  "description": "A fast-paced cyber-neon mobile reflex game with streamlined two-thumb controls, fever mode, and procedural Web Audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

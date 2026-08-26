@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Split Reaction: Neon Rush</title>
-  <meta name="description" content="A fast-paced cyber-neon reflex arcade game with streamlined two-thumb controls, fever mode, and synthwave visuals." />
+  <meta name="description" content="A fast-paced cyber-neon reflex arcade game with progressive checkpoints, two-thumb controls, fever mode, and procedural synthwave audio." />
   <style>
     * {
       box-sizing: border-box;
@@ -40,15 +40,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #07070b;
-      box-shadow: 0 0 80px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 42, 109, 0.08);
+      background: #04060c;
+      box-shadow: 0 0 80px rgba(0, 0, 0, 0.95), 0 0 30px rgba(5, 217, 232, 0.12);
       overflow: hidden;
+      transition: background-color 0.8s ease, box-shadow 0.8s ease;
     }
 
     @media (min-width: 450px) and (min-height: 700px) {
       #game-wrapper {
-        border-radius: 20px;
-        border: 1px solid #1a1a24;
+        border-radius: 22px;
+        border: 1px solid #1a1a28;
       }
     }
 
@@ -61,7 +62,7 @@
 
     /* Screen Shake Container */
     .shake-active {
-      animation: screen-shake 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+      animation: screen-shake 0.24s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
 
     @keyframes screen-shake {
@@ -71,13 +72,27 @@
       40%, 60% { transform: translate3d(5px, -1px, 0); }
     }
 
+    /* Phase Transition Hue Flash Overlay */
+    #phase-pulse-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      z-index: 7;
+      transition: opacity 0.5s ease-out;
+    }
+
+    #phase-pulse-overlay.flash {
+      opacity: 1;
+    }
+
     /* Safe Area Top HUD Container (40px top offset for mobile notches) */
     .safe-hud-container {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
-      padding-top: calc(max(env(safe-area-inset-top), 40px));
+      padding-top: calc(max(env(safe-area-inset-top), 38px));
       padding-left: 16px;
       padding-right: 16px;
       pointer-events: none;
@@ -94,37 +109,39 @@
       width: 100%;
     }
 
-    /* Wave Progress Pill */
-    .wave-badge-container {
+    /* Phase Progress Pill */
+    .phase-badge-container {
       display: flex;
       flex-direction: column;
       gap: 3px;
-      min-width: 76px;
+      min-width: 82px;
     }
 
-    .wave-label {
+    .phase-label {
       font-size: 10px;
-      font-weight: 800;
+      font-weight: 900;
       letter-spacing: 1.5px;
-      color: rgba(255, 255, 255, 0.5);
+      color: #05d9e8;
       text-transform: uppercase;
       font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 10px rgba(5, 217, 232, 0.5);
+      transition: color 0.4s ease, text-shadow 0.4s ease;
     }
 
-    .wave-bar-bg {
-      width: 68px;
+    .phase-bar-bg {
+      width: 74px;
       height: 4px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.12);
       border-radius: 2px;
       overflow: hidden;
     }
 
-    .wave-bar-fill {
+    .phase-bar-fill {
       height: 100%;
       width: 0%;
       background: #05d9e8;
       box-shadow: 0 0 8px #05d9e8;
-      transition: width 0.15s ease;
+      transition: width 0.2s ease, background-color 0.4s ease;
     }
 
     /* Center Score & Multiplier */
@@ -147,7 +164,7 @@
     }
 
     .main-score.bump {
-      transform: scale(1.22);
+      transform: scale(1.25);
       color: #05d9e8;
       text-shadow: 0 0 25px #05d9e8;
     }
@@ -163,7 +180,7 @@
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.08);
       border: 1px solid rgba(255, 255, 255, 0.18);
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.85);
       transition: all 0.2s ease;
     }
 
@@ -215,7 +232,7 @@
       height: 34px;
       border-radius: 50%;
       background: rgba(20, 20, 30, 0.65);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       color: rgba(255, 255, 255, 0.85);
       display: flex;
       align-items: center;
@@ -227,7 +244,7 @@
 
     .hud-btn:hover {
       background: rgba(255, 255, 255, 0.15);
-      border-color: rgba(255, 255, 255, 0.3);
+      border-color: rgba(255, 255, 255, 0.35);
       color: #ffffff;
     }
 
@@ -235,13 +252,54 @@
       transform: scale(0.92);
     }
 
+    /* Checkpoint Floating Banner Display (Pop Notification) */
+    #checkpoint-banner {
+      position: absolute;
+      top: 24%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.7);
+      pointer-events: none;
+      z-index: 25;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    #checkpoint-banner.show {
+      transform: translate(-50%, -50%) scale(1);
+      opacity: 1;
+    }
+
+    .banner-title {
+      font-size: 26px;
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      text-shadow: 0 0 25px rgba(5, 217, 232, 0.8);
+      white-space: nowrap;
+    }
+
+    .banner-subtitle {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #05d9e8;
+      text-shadow: 0 0 15px rgba(5, 217, 232, 0.6);
+      margin-top: 2px;
+    }
+
     /* Two-Thumb Animated Touch Guides at Bottom Corners */
     .touch-guides-container {
       position: absolute;
-      bottom: 24px;
+      bottom: 22px;
       left: 0;
       width: 100%;
-      padding: 0 18px;
+      padding: 0 16px;
       display: flex;
       justify-content: space-between;
       pointer-events: none;
@@ -253,12 +311,12 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 8px 14px;
+      padding: 8px 12px;
       border-radius: 14px;
-      background: rgba(14, 14, 20, 0.75);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(14, 14, 22, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       backdrop-filter: blur(8px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
       animation: float-thumb 2.5s infinite ease-in-out;
     }
 
@@ -301,7 +359,7 @@
       font-size: 8px;
       font-weight: 700;
       letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(255, 255, 255, 0.5);
       text-transform: uppercase;
     }
 
@@ -313,18 +371,18 @@
       height: 100%;
       pointer-events: none;
       opacity: 0;
-      transition: opacity 0.15s ease;
+      transition: opacity 0.12s ease;
       z-index: 6;
     }
 
     #tap-highlight-left {
       left: 0;
-      background: radial-gradient(circle at 30% 70%, rgba(255, 42, 109, 0.15), transparent 70%);
+      background: radial-gradient(circle at 30% 75%, rgba(255, 42, 109, 0.18), transparent 70%);
     }
 
     #tap-highlight-right {
       right: 0;
-      background: radial-gradient(circle at 70% 70%, rgba(5, 217, 232, 0.15), transparent 70%);
+      background: radial-gradient(circle at 70% 75%, rgba(5, 217, 232, 0.18), transparent 70%);
     }
 
     .tap-zone-highlight.active {
@@ -335,7 +393,7 @@
     #fever-flash-overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.25), transparent 80%);
+      background: radial-gradient(circle at 50% 50%, rgba(255, 204, 0, 0.28), transparent 80%);
       pointer-events: none;
       opacity: 0;
       z-index: 8;
@@ -350,13 +408,13 @@
     .modal-screen {
       position: absolute;
       inset: 0;
-      background: rgba(6, 6, 10, 0.93);
+      background: rgba(6, 6, 11, 0.94);
       backdrop-filter: blur(14px);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 30px 24px;
+      padding: 28px 22px;
       text-align: center;
       z-index: 30;
       opacity: 0;
@@ -388,7 +446,7 @@
       text-transform: uppercase;
       color: #05d9e8;
       text-shadow: 0 0 15px rgba(5, 217, 232, 0.6);
-      margin-bottom: 22px;
+      margin-bottom: 18px;
     }
 
     /* Pulse Play Button */
@@ -436,7 +494,7 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
 
     /* High score badge on start */
@@ -452,19 +510,53 @@
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 1.5px;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
+
+    /* Checkpoint Roadmap Info Box on Start Screen */
+    .roadmap-card {
+      width: 100%;
+      background: rgba(14, 14, 22, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .roadmap-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .roadmap-tag {
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-weight: 900;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+    }
+
+    .tag-p1 { background: rgba(5, 217, 232, 0.15); color: #05d9e8; border: 1px solid rgba(5, 217, 232, 0.3); }
+    .tag-p2 { background: rgba(216, 75, 255, 0.15); color: #d84bff; border: 1px solid rgba(216, 75, 255, 0.3); }
+    .tag-p3 { background: rgba(255, 170, 0, 0.15); color: #ffaa00; border: 1px solid rgba(255, 170, 0, 0.3); }
+    .tag-p4 { background: rgba(255, 42, 109, 0.15); color: #ff2a6d; border: 1px solid rgba(255, 42, 109, 0.3); }
 
     /* Instructions Box */
     .instructions-card {
       width: 100%;
-      background: rgba(14, 14, 20, 0.7);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(14, 14, 22, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 14px;
-      padding: 12px 14px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .instruction-row {
@@ -491,11 +583,11 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
     .gameover-num {
-      font-size: 72px;
+      font-size: 68px;
       font-weight: 900;
       font-style: italic;
       color: #ffffff;
@@ -519,14 +611,14 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .stat-box {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 9px 14px;
+      padding: 8px 14px;
       border-radius: 10px;
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -557,7 +649,7 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      padding: 14px 42px;
+      padding: 13px 42px;
       border-radius: 9999px;
       border: 1px solid #ffffff;
       background: transparent;
@@ -590,15 +682,22 @@
     <div id="tap-highlight-left" class="tap-zone-highlight"></div>
     <div id="tap-highlight-right" class="tap-zone-highlight"></div>
     <div id="fever-flash-overlay"></div>
+    <div id="phase-pulse-overlay"></div>
+
+    <!-- Checkpoint Notification Floating Banner -->
+    <div id="checkpoint-banner">
+      <div id="banner-title" class="banner-title">PHASE 2</div>
+      <div id="banner-sub" class="banner-subtitle">SWAP GATES UNLOCKED</div>
+    </div>
 
     <!-- Safe Area Top HUD -->
     <div class="safe-hud-container">
       <div class="hud-top-row">
-        <!-- Wave Indicator -->
-        <div class="wave-badge-container">
-          <div id="hud-wave-label" class="wave-label">WAVE 1-1</div>
-          <div class="wave-bar-bg">
-            <div id="hud-wave-bar" class="wave-bar-fill"></div>
+        <!-- Progressive Checkpoint Indicator -->
+        <div class="phase-badge-container">
+          <div id="hud-phase-label" class="phase-label">PHASE 1</div>
+          <div class="phase-bar-bg">
+            <div id="hud-phase-bar" class="phase-bar-fill"></div>
           </div>
         </div>
 
@@ -673,6 +772,26 @@
       </div>
       <div class="tap-start-caption">TAP TO START</div>
 
+      <!-- Progressive Checkpoint Roadmap -->
+      <div class="roadmap-card">
+        <div class="roadmap-row">
+          <span>Score 0 - 5</span>
+          <span class="roadmap-tag tag-p1">PHASE 1: Intro (160 px/s)</span>
+        </div>
+        <div class="roadmap-row">
+          <span>Score 6 - 15</span>
+          <span class="roadmap-tag tag-p2">PHASE 2: Swaps (220 px/s)</span>
+        </div>
+        <div class="roadmap-row">
+          <span>Score 16 - 30</span>
+          <span class="roadmap-tag tag-p3">PHASE 3: Standard (280 px/s)</span>
+        </div>
+        <div class="roadmap-row">
+          <span>Score 31+</span>
+          <span class="roadmap-tag tag-p4">PHASE 4: Overdrive</span>
+        </div>
+      </div>
+
       <div class="instructions-card">
         <div class="instruction-row">
           <span>Swap Left/Right Colors</span>
@@ -705,12 +824,12 @@
           <span id="gameover-best" class="stat-value gold">0</span>
         </div>
         <div class="stat-box">
-          <span class="stat-title">GATES CLEARED</span>
-          <span id="gameover-gates" class="stat-value">0</span>
+          <span class="stat-title">CHECKPOINT REACHED</span>
+          <span id="gameover-phase" class="stat-value pink">PHASE 1</span>
         </div>
         <div class="stat-box">
-          <span class="stat-title">WAVE REACHED</span>
-          <span id="gameover-wave" class="stat-value pink">WAVE 1</span>
+          <span class="stat-title">GATES CLEARED</span>
+          <span id="gameover-gates" class="stat-value">0</span>
         </div>
         <div class="stat-box">
           <span class="stat-title">MAX COMBO</span>
@@ -737,9 +856,62 @@
       const PLAYER_Y = VIRTUAL_HEIGHT * 0.78; // 585px
       const BALL_RADIUS = 13;
 
-      // Speeds
-      const BASE_SPEED = 290;
-      const MAX_SPEED = 780;
+      // Checkpoint Phase Themes & Settings
+      const PHASE_CONFIGS = {
+        1: {
+          name: 'PHASE 1',
+          sub: 'BEGINNER INTRO',
+          baseSpeed: 160,
+          gap: 380,
+          allowedGates: ['parallel', 'split'], // only simple parallel or split
+          nearMissBuffer: 44,
+          perfectThreshold: 26,
+          verticalGrace: 16,
+          bgColor: '#04060c',
+          pulseColor: 'radial-gradient(circle at 50% 50%, rgba(5, 217, 232, 0.35), transparent 75%)',
+          accentColor: '#05d9e8'
+        },
+        2: {
+          name: 'PHASE 2',
+          sub: 'SWAP GATES UNLOCKED',
+          baseSpeed: 220,
+          gap: 320,
+          allowedGates: ['parallel', 'split', 'swapped_parallel', 'swapped_split'],
+          nearMissBuffer: 36,
+          perfectThreshold: 22,
+          verticalGrace: 6,
+          bgColor: '#09040e',
+          pulseColor: 'radial-gradient(circle at 50% 50%, rgba(216, 75, 255, 0.38), transparent 75%)',
+          accentColor: '#d84bff'
+        },
+        3: {
+          name: 'PHASE 3',
+          sub: 'SPEED UP!',
+          baseSpeed: 280,
+          gap: 260,
+          allowedGates: ['parallel', 'split', 'swapped_parallel', 'swapped_split'],
+          nearMissBuffer: 32,
+          perfectThreshold: 18,
+          verticalGrace: 0,
+          bgColor: '#0c0704',
+          pulseColor: 'radial-gradient(circle at 50% 50%, rgba(255, 170, 0, 0.38), transparent 75%)',
+          accentColor: '#ffaa00'
+        },
+        4: {
+          name: 'PHASE 4',
+          sub: 'HYPER OVERDRIVE!',
+          baseSpeed: 280, // scales with points: 280 + (score - 30) * 2.5
+          gap: 260,       // scales down to min 190
+          allowedGates: ['parallel', 'split', 'swapped_parallel', 'swapped_split'],
+          nearMissBuffer: 30,
+          perfectThreshold: 16,
+          verticalGrace: 0,
+          bgColor: '#0e0307',
+          pulseColor: 'radial-gradient(circle at 50% 50%, rgba(255, 42, 109, 0.42), transparent 75%)',
+          accentColor: '#ff2a6d'
+        }
+      };
+
       const FEVER_SPEED_BOOST = 1.35;
 
       // Colors
@@ -796,9 +968,9 @@
             const gain = this.ctx.createGain();
 
             osc.type = 'sine';
-            const freq = isSplit ? 620 : 480;
+            const freq = isSplit ? 640 : 500;
             osc.frequency.setValueAtTime(freq, now);
-            osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.05);
+            osc.frequency.exponentialRampToValueAtTime(freq * 1.4, now + 0.05);
 
             gain.gain.setValueAtTime(0.2, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
@@ -836,6 +1008,53 @@
 
               osc.start(now);
               osc.stop(now + 0.14);
+            });
+          } catch (e) {}
+        }
+
+        // Ascending Checkpoint Fanfare / Chime
+        playCheckpointChime(phase) {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            // Pentatonic ascending chime arpeggio
+            const arpeggio = phase === 2
+              ? [523.25, 659.25, 783.99, 1046.50]  // C5, E5, G5, C6
+              : phase === 3
+              ? [587.33, 739.99, 880.00, 1174.66]  // D5, F#5, A5, D6
+              : [659.25, 830.61, 987.77, 1318.51, 1567.98]; // E5, G#5, B5, E6, G6
+
+            arpeggio.forEach((freq, idx) => {
+              const noteTime = now + idx * 0.07;
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, noteTime);
+              osc.frequency.exponentialRampToValueAtTime(freq * 1.02, noteTime + 0.25);
+
+              gain.gain.setValueAtTime(0.35, noteTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.35);
+
+              osc.connect(gain);
+              gain.connect(this.masterGain);
+
+              osc.start(noteTime);
+              osc.stop(noteTime + 0.35);
+
+              // Secondary shimmer harmonic
+              const shimOsc = this.ctx.createOscillator();
+              const shimGain = this.ctx.createGain();
+              shimOsc.type = 'triangle';
+              shimOsc.frequency.setValueAtTime(freq * 2, noteTime);
+              shimGain.gain.setValueAtTime(0.12, noteTime);
+              shimGain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.2);
+
+              shimOsc.connect(shimGain);
+              shimGain.connect(this.masterGain);
+
+              shimOsc.start(noteTime);
+              shimOsc.stop(noteTime + 0.2);
             });
           } catch (e) {}
         }
@@ -1013,12 +1232,12 @@
           this.y = y;
           this.color = color;
           this.size = size;
-          this.life = 0.7;
-          this.maxLife = 0.7;
+          this.life = 0.8;
+          this.maxLife = 0.8;
         }
 
         update(dt) {
-          this.y -= 45 * dt;
+          this.y -= 40 * dt;
           this.life -= dt;
           return this.life > 0;
         }
@@ -1030,7 +1249,7 @@
           ctx.font = `900 italic ${this.size}px -apple-system, sans-serif`;
           ctx.fillStyle = this.color;
           ctx.shadowColor = this.color;
-          ctx.shadowBlur = 10;
+          ctx.shadowBlur = 12;
           ctx.textAlign = 'center';
           ctx.fillText(this.text, this.x, this.y);
           ctx.restore();
@@ -1125,14 +1344,21 @@
           // DOM UI Elements
           this.hudScore = document.getElementById('hud-score');
           this.hudMultiplier = document.getElementById('hud-multiplier');
-          this.hudWaveLabel = document.getElementById('hud-wave-label');
-          this.hudWaveBar = document.getElementById('hud-wave-bar');
+          this.hudPhaseLabel = document.getElementById('hud-phase-label');
+          this.hudPhaseBar = document.getElementById('hud-phase-bar');
           this.feverDotsRow = document.getElementById('fever-dots-row');
           this.feverDots = this.feverDotsRow.querySelectorAll('.fever-dot');
           this.touchGuides = document.getElementById('touch-guides');
           this.highlightLeft = document.getElementById('tap-highlight-left');
           this.highlightRight = document.getElementById('tap-highlight-right');
           this.feverOverlay = document.getElementById('fever-flash-overlay');
+          this.phasePulseOverlay = document.getElementById('phase-pulse-overlay');
+
+          // Checkpoint Pop Banner
+          this.checkpointBanner = document.getElementById('checkpoint-banner');
+          this.bannerTitle = document.getElementById('banner-title');
+          this.bannerSub = document.getElementById('banner-sub');
+          this.bannerTimer = null;
 
           // Screens
           this.screenStart = document.getElementById('screen-start');
@@ -1140,8 +1366,8 @@
           this.startBestScore = document.getElementById('start-best-score');
           this.gameoverScore = document.getElementById('gameover-score');
           this.gameoverBest = document.getElementById('gameover-best');
+          this.gameoverPhase = document.getElementById('gameover-phase');
           this.gameoverGates = document.getElementById('gameover-gates');
-          this.gameoverWave = document.getElementById('gameover-wave');
           this.gameoverCombo = document.getElementById('gameover-combo');
 
           // Buttons
@@ -1170,25 +1396,18 @@
 
           // Gameplay Metrics
           this.score = 0;
+          this.currentPhase = 1;
           this.combo = 0;
           this.maxCombo = 0;
           this.perfectStreak = 0; // for 5-combo fever meter
           this.gatesPassed = 0;
           this.gameTime = 0;
-          this.speed = BASE_SPEED;
+          this.speed = PHASE_CONFIGS[1].baseSpeed;
 
           // Fever Mode Engine
           this.isFeverActive = false;
           this.feverTimer = 0;
           this.feverDuration = 4.0; // 4 seconds
-
-          // Wave Progression Engine
-          // Wave Cycle: 1: Normal Cruise (7 gates), 2: Fast Cluster (5 gates), 3: Breather (2s open straight)
-          this.waveMajor = 1;
-          this.waveSub = 1; // 1, 2, or 3
-          this.waveGateCount = 0;
-          this.waveGatesTarget = 7;
-          this.breatherTimer = 0;
 
           // Entities
           this.gates = [];
@@ -1197,13 +1416,12 @@
 
           // Spawning
           this.distanceSinceLastGate = 0;
-          this.nextGateDistance = 330;
+          this.nextGateDistance = PHASE_CONFIGS[1].gap;
           this.lastGateConfig = null;
 
           // Visual FX
           this.gridOffset = 0;
           this.touchGuideTimer = 6.0; // Show for initial 6s
-          this.deathSlowMo = 0;
 
           // Render Setup
           this.lastTime = performance.now();
@@ -1231,6 +1449,76 @@
             this.iconSoundOn.style.display = 'block';
             this.iconSoundOff.style.display = 'none';
           }
+        }
+
+        // Calculate current phase based on score
+        getPhaseForScore(score) {
+          if (score <= 5) return 1;
+          if (score <= 15) return 2;
+          if (score <= 30) return 3;
+          return 4;
+        }
+
+        // Checkpoint transition trigger
+        checkPhaseTransition(newScore) {
+          const newPhase = this.getPhaseForScore(newScore);
+          if (newPhase !== this.currentPhase) {
+            this.currentPhase = newPhase;
+            this.triggerPhaseCheckpoint(newPhase);
+          }
+        }
+
+        triggerPhaseCheckpoint(phase) {
+          const cfg = PHASE_CONFIGS[phase];
+
+          // 1. Audio Ascending Chime
+          audio.playCheckpointChime(phase);
+          triggerHaptic([40, 30, 60]);
+
+          // 2. Background Hue Pulse
+          this.phasePulseOverlay.style.background = cfg.pulseColor;
+          this.phasePulseOverlay.classList.add('flash');
+          setTimeout(() => this.phasePulseOverlay.classList.remove('flash'), 700);
+
+          // Shift wrapper background
+          this.wrapper.style.backgroundColor = cfg.bgColor;
+
+          // 3. Floating Screen Banner
+          this.bannerTitle.textContent = cfg.name;
+          this.bannerTitle.style.color = cfg.accentColor;
+          this.bannerTitle.style.textShadow = `0 0 25px ${cfg.accentColor}`;
+          this.bannerSub.textContent = cfg.sub;
+          this.bannerSub.style.color = '#ffffff';
+
+          this.checkpointBanner.classList.add('show');
+          if (this.bannerTimer) clearTimeout(this.bannerTimer);
+          this.bannerTimer = setTimeout(() => {
+            this.checkpointBanner.classList.remove('show');
+          }, 1600);
+
+          // 4. In-game canvas floating text burst
+          this.floatingTexts.push(
+            new FloatingText(`${cfg.name}: ${cfg.sub}`, VIRTUAL_WIDTH / 2, PLAYER_Y - 50, cfg.accentColor, 20)
+          );
+
+          // Burst particles in accent color
+          for (let i = 0; i < 28; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const spd = 80 + Math.random() * 240;
+            this.particles.push(
+              new Particle(
+                VIRTUAL_WIDTH / 2,
+                PLAYER_Y,
+                cfg.accentColor,
+                Math.cos(angle) * spd,
+                Math.sin(angle) * spd,
+                3 + Math.random() * 3.5,
+                0.55
+              )
+            );
+          }
+
+          this.updateHUD();
         }
 
         // Resolve Target X based on Two-Thumb Toggles
@@ -1370,12 +1658,13 @@
           audio.resume();
           this.gameState = 'PLAYING';
           this.score = 0;
+          this.currentPhase = 1;
           this.combo = 0;
           this.maxCombo = 0;
           this.perfectStreak = 0;
           this.gatesPassed = 0;
           this.gameTime = 0;
-          this.speed = BASE_SPEED;
+          this.speed = PHASE_CONFIGS[1].baseSpeed;
 
           this.isSwapped = false;
           this.isSplit = false;
@@ -1386,26 +1675,22 @@
           this.isFeverActive = false;
           this.feverTimer = 0;
 
-          this.waveMajor = 1;
-          this.waveSub = 1;
-          this.waveGateCount = 0;
-          this.waveGatesTarget = 6;
-          this.breatherTimer = 0;
-
           this.gates = [];
           this.particles = [];
           this.floatingTexts = [];
           this.distanceSinceLastGate = 0;
-          this.nextGateDistance = 340;
+          this.nextGateDistance = PHASE_CONFIGS[1].gap;
           this.lastGateConfig = null;
           this.touchGuideTimer = 6.0;
 
+          this.wrapper.style.backgroundColor = PHASE_CONFIGS[1].bgColor;
           this.updateHUD();
           this.screenStart.classList.remove('visible');
           this.screenGameOver.classList.remove('visible');
           this.feverOverlay.classList.remove('active');
+          this.checkpointBanner.classList.remove('show');
 
-          // Initial friendly obstacle
+          // Initial friendly obstacle in Phase 1 (Parallel inner lanes)
           this.spawnGate(1, 2, -40);
           this.lastTime = performance.now();
         }
@@ -1483,29 +1768,36 @@
           this.gameoverScore.textContent = this.score;
           this.gameoverBest.textContent = this.highScore;
           this.gameoverGates.textContent = this.gatesPassed;
-          this.gameoverWave.textContent = `WAVE ${this.waveMajor}-${this.waveSub}`;
+          this.gameoverPhase.textContent = PHASE_CONFIGS[this.currentPhase].name;
           this.gameoverCombo.textContent = this.maxCombo;
 
           setTimeout(() => {
             this.screenGameOver.classList.add('visible');
             this.feverOverlay.classList.remove('active');
+            this.checkpointBanner.classList.remove('show');
           }, 350);
         }
 
         spawnGate(forceRed = null, forceBlue = null, customY = -30) {
-          // 4 possible valid configurations
-          const configs = [
-            { r: 1, b: 2 }, // Parallel
-            { r: 0, b: 3 }, // Split
-            { r: 2, b: 1 }, // Swapped Parallel
-            { r: 3, b: 0 }  // Swapped Split
-          ];
+          const phase = this.currentPhase;
+          const allowed = PHASE_CONFIGS[phase].allowedGates;
+
+          const gateDefinitions = {
+            parallel: { r: 1, b: 2 },
+            split: { r: 0, b: 3 },
+            swapped_parallel: { r: 2, b: 1 },
+            swapped_split: { r: 3, b: 0 }
+          };
 
           let choice;
           if (forceRed !== null && forceBlue !== null) {
             choice = { r: forceRed, b: forceBlue };
           } else {
-            const pool = configs.filter(c => !this.lastGateConfig || (c.r !== this.lastGateConfig.r || c.b !== this.lastGateConfig.b));
+            const validConfigs = allowed.map(key => gateDefinitions[key]);
+            const filteredPool = validConfigs.filter(
+              c => !this.lastGateConfig || (c.r !== this.lastGateConfig.r || c.b !== this.lastGateConfig.b)
+            );
+            const pool = filteredPool.length > 0 ? filteredPool : validConfigs;
             choice = pool[Math.floor(Math.random() * pool.length)];
           }
 
@@ -1515,9 +1807,18 @@
 
           this.distanceSinceLastGate = 0;
 
-          // Next gate spacing depends on wave and speed
-          const baseSpacing = (this.waveSub === 2) ? 220 : 310;
-          this.nextGateDistance = Math.max(180, baseSpacing - (this.speed - BASE_SPEED) * 0.25);
+          // Compute distance to next gate based on phase
+          if (phase === 1) {
+            this.nextGateDistance = PHASE_CONFIGS[1].gap; // 380px
+          } else if (phase === 2) {
+            this.nextGateDistance = PHASE_CONFIGS[2].gap; // 320px
+          } else if (phase === 3) {
+            this.nextGateDistance = PHASE_CONFIGS[3].gap; // 260px
+          } else {
+            // Phase 4: distance tightens down to 190px minimum
+            const tighten = (this.score - 30) * 1.5;
+            this.nextGateDistance = Math.max(190, 260 - tighten);
+          }
         }
 
         updateHUD() {
@@ -1540,11 +1841,26 @@
             dot.classList.toggle('active', idx < dotsActive);
           });
 
-          // Update Wave Info
-          const subText = this.waveSub === 3 ? 'BREATHER' : `${this.waveSub}`;
-          this.hudWaveLabel.textContent = `WAVE ${this.waveMajor}-${subText}`;
-          const progress = this.waveSub === 3 ? (1 - this.breatherTimer / 2.0) : (this.waveGateCount / this.waveGatesTarget);
-          this.hudWaveBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
+          // Update Progressive Checkpoint Phase Info
+          const cfg = PHASE_CONFIGS[this.currentPhase];
+          this.hudPhaseLabel.textContent = cfg.name;
+          this.hudPhaseLabel.style.color = cfg.accentColor;
+          this.hudPhaseLabel.style.textShadow = `0 0 10px ${cfg.accentColor}`;
+          this.hudPhaseBar.style.backgroundColor = cfg.accentColor;
+          this.hudPhaseBar.style.boxShadow = `0 0 8px ${cfg.accentColor}`;
+
+          // Checkpoint Progress Calculation
+          let progress = 1.0;
+          if (this.currentPhase === 1) {
+            progress = Math.min(1.0, this.score / 6);
+          } else if (this.currentPhase === 2) {
+            progress = Math.min(1.0, (this.score - 6) / 10);
+          } else if (this.currentPhase === 3) {
+            progress = Math.min(1.0, (this.score - 16) / 15);
+          } else {
+            progress = 1.0;
+          }
+          this.hudPhaseBar.style.width = `${Math.min(100, Math.max(0, progress * 100))}%`;
         }
 
         update(dt) {
@@ -1568,11 +1884,24 @@
             }
           }
 
-          // Speed Calculation with Wave Ramping
-          const baselineSpeed = BASE_SPEED + (this.waveMajor - 1) * 30 + Math.min(200, this.gameTime * 2.5);
-          const waveSpeedMult = (this.waveSub === 2) ? 1.15 : (this.waveSub === 3 ? 0.9 : 1.0);
+          // Dynamic Speed Calculation per Phase Requirements:
+          // Phase 1 (0-5): 160 px/s
+          // Phase 2 (6-15): 220 px/s
+          // Phase 3 (16-30): 280 px/s
+          // Phase 4 (31+): 280 + (score - 30) * 2.5
+          let targetBaseSpeed;
+          if (this.currentPhase === 1) {
+            targetBaseSpeed = 160;
+          } else if (this.currentPhase === 2) {
+            targetBaseSpeed = 220;
+          } else if (this.currentPhase === 3) {
+            targetBaseSpeed = 280;
+          } else {
+            targetBaseSpeed = 280 + (this.score - 30) * 2.5;
+          }
+
           const feverMult = this.isFeverActive ? FEVER_SPEED_BOOST : 1.0;
-          this.speed = Math.min(MAX_SPEED, baselineSpeed * waveSpeedMult * feverMult);
+          this.speed = targetBaseSpeed * feverMult;
 
           // Background Scrolling Grid
           this.gridOffset = (this.gridOffset + this.speed * dt) % 40;
@@ -1591,41 +1920,18 @@
             new Particle(this.ballBlue.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, trailColorBlue, (Math.random() - 0.5) * 12, 35 + Math.random() * 30, 2.5, 0.22, this.isFeverActive)
           );
 
-          // Wave Progression Logic
-          if (this.waveSub === 3) {
-            // Breather Phase
-            this.breatherTimer -= dt;
-            if (this.breatherTimer <= 0) {
-              this.waveMajor++;
-              this.waveSub = 1;
-              this.waveGateCount = 0;
-              this.waveGatesTarget = 6 + this.waveMajor;
-              this.updateHUD();
-            }
-          } else {
-            // Normal Spawning Phase
-            this.distanceSinceLastGate += this.speed * dt;
-            if (this.distanceSinceLastGate >= this.nextGateDistance) {
-              this.spawnGate();
-              this.waveGateCount++;
-              this.updateHUD();
-
-              if (this.waveGateCount >= this.waveGatesTarget) {
-                if (this.waveSub === 1) {
-                  this.waveSub = 2; // Move to fast cluster
-                  this.waveGateCount = 0;
-                  this.waveGatesTarget = 5;
-                  this.updateHUD();
-                } else if (this.waveSub === 2) {
-                  this.waveSub = 3; // Move to breather
-                  this.breatherTimer = 2.0;
-                  this.updateHUD();
-                }
-              }
-            }
+          // Spawning Logic based on distance traveled
+          this.distanceSinceLastGate += this.speed * dt;
+          if (this.distanceSinceLastGate >= this.nextGateDistance) {
+            this.spawnGate();
           }
 
           // Laser Gates Collision & Clear Checking
+          const cfg = PHASE_CONFIGS[this.currentPhase];
+          const verticalGrace = cfg.verticalGrace || 0; // ±16px vertical grace window in Phase 1
+          const nearMissBuffer = cfg.nearMissBuffer;
+          const perfectThreshold = cfg.perfectThreshold;
+
           for (let i = this.gates.length - 1; i >= 0; i--) {
             const gate = this.gates[i];
             gate.update(dt, this.speed);
@@ -1635,15 +1941,13 @@
             const gateCenterY = gate.y + gate.height / 2;
 
             if (!gate.passed && !gate.failed) {
-              if (gateBottom >= PLAYER_Y - BALL_RADIUS && gateTop <= PLAYER_Y + BALL_RADIUS) {
+              // Collision envelope includes vertical grace window
+              if (gateBottom >= PLAYER_Y - BALL_RADIUS - verticalGrace && gateTop <= PLAYER_Y + BALL_RADIUS + verticalGrace) {
                 const targetRedX = LANE_CENTERS[gate.laneRed];
                 const targetBlueX = LANE_CENTERS[gate.laneBlue];
 
                 const diffRed = Math.abs(this.ballRed.x - targetRedX);
                 const diffBlue = Math.abs(this.ballBlue.x - targetBlueX);
-
-                const NEAR_MISS_BUFFER = 32; // ±12px forgiveness on 20px window
-                const PERFECT_THRESHOLD = 18;
 
                 if (gateCenterY >= PLAYER_Y) {
                   if (this.isFeverActive) {
@@ -1656,6 +1960,7 @@
 
                     audio.playGatePass(this.combo, true);
                     triggerHaptic([15]);
+                    this.checkPhaseTransition(this.score);
                     this.updateHUD();
 
                     // Shatter gate into gold
@@ -1673,13 +1978,13 @@
                         )
                       );
                     }
-                  } else if (diffRed <= NEAR_MISS_BUFFER && diffBlue <= NEAR_MISS_BUFFER) {
+                  } else if (diffRed <= nearMissBuffer && diffBlue <= nearMissBuffer) {
                     gate.passed = true;
                     this.gatesPassed++;
                     this.combo++;
                     if (this.combo > this.maxCombo) this.maxCombo = this.combo;
 
-                    const isPerfect = (diffRed <= PERFECT_THRESHOLD && diffBlue <= PERFECT_THRESHOLD);
+                    const isPerfect = (diffRed <= perfectThreshold && diffBlue <= perfectThreshold);
                     const mult = 1 + Math.floor(this.combo / 4);
 
                     if (isPerfect) {
@@ -1702,6 +2007,7 @@
                       );
                     }
 
+                    this.checkPhaseTransition(this.score);
                     this.updateHUD();
                   } else {
                     gate.failed = true;
@@ -1736,7 +2042,8 @@
           ctx.save();
 
           // Clear Background
-          ctx.fillStyle = '#06060a';
+          const cfg = PHASE_CONFIGS[this.currentPhase];
+          ctx.fillStyle = cfg.bgColor;
           ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
           // 1. Cyber Grid & Vertical Track Dividers
@@ -1770,7 +2077,7 @@
           ctx.save();
 
           // Horizontal Scrolling Lines
-          ctx.strokeStyle = this.isFeverActive ? 'rgba(255, 204, 0, 0.07)' : 'rgba(255, 255, 255, 0.025)';
+          ctx.strokeStyle = this.isFeverActive ? 'rgba(255, 204, 0, 0.08)' : 'rgba(255, 255, 255, 0.025)';
           ctx.lineWidth = 1;
           for (let y = this.gridOffset; y < VIRTUAL_HEIGHT; y += 40) {
             ctx.beginPath();
@@ -1783,8 +2090,8 @@
           for (let i = 1; i < NUM_LANES; i++) {
             const x = i * LANE_WIDTH;
             ctx.strokeStyle = (i === 2)
-              ? (this.isFeverActive ? 'rgba(255, 204, 0, 0.2)' : 'rgba(255, 255, 255, 0.1)')
-              : (this.isFeverActive ? 'rgba(255, 204, 0, 0.08)' : 'rgba(255, 255, 255, 0.035)');
+              ? (this.isFeverActive ? 'rgba(255, 204, 0, 0.22)' : 'rgba(255, 255, 255, 0.12)')
+              : (this.isFeverActive ? 'rgba(255, 204, 0, 0.08)' : 'rgba(255, 255, 255, 0.04)');
             ctx.lineWidth = (i === 2) ? 1.5 : 1;
             ctx.beginPath();
             ctx.moveTo(x, 0);
