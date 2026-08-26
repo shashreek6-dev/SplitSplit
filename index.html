@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Split Reaction: Neon Overdrive</title>
-  <meta name="description" content="A high-reflex cyber-neon arcade game with fever combos, floating floating text feedback, procedural audio, and instant touch controls." />
+  <meta name="description" content="A high-reflex cyber-neon arcade game with fever combos, floating text feedback, procedural audio, and instant touch controls." />
   <style>
     * {
       box-sizing: border-box;
@@ -29,7 +29,6 @@
       justify-content: center;
     }
 
-    /* Framing Container */
     #game-wrapper {
       position: relative;
       width: 100%;
@@ -43,7 +42,7 @@
       background: #030408;
       box-shadow: 0 0 90px rgba(0, 0, 0, 0.95), 0 0 40px rgba(5, 217, 232, 0.15);
       overflow: hidden;
-      transition: background-color 1s ease;
+      transition: background-color 0.8s ease;
     }
 
     @media (min-width: 450px) and (min-height: 700px) {
@@ -60,7 +59,6 @@
       touch-action: none;
     }
 
-    /* Screen Shake Container */
     .shake-active {
       animation: screen-shake 0.24s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
@@ -72,7 +70,6 @@
       40%, 60% { transform: translate3d(6px, -2px, 0); }
     }
 
-    /* Milestone Flash Overlay */
     #milestone-overlay {
       position: absolute;
       inset: 0;
@@ -87,7 +84,6 @@
       opacity: 1;
     }
 
-    /* Top Safe HUD */
     .safe-hud-container {
       position: absolute;
       top: 0;
@@ -228,7 +224,6 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    /* Bottom Touch Buttons */
     .touch-controls-container {
       position: absolute;
       bottom: calc(max(env(safe-area-inset-bottom), 18px));
@@ -326,7 +321,6 @@
       pointer-events: none;
     }
 
-    /* Modal Screens */
     .modal-screen {
       position: absolute;
       inset: 0;
@@ -460,7 +454,6 @@
       font-family: monospace;
     }
 
-    /* Game Over */
     .gameover-score-wrap {
       display: flex;
       flex-direction: column;
@@ -551,16 +544,13 @@
   <div id="game-wrapper">
     <canvas id="game-canvas"></canvas>
 
-    <!-- Milestone Overlay -->
     <div id="milestone-overlay"></div>
 
-    <!-- Checkpoint Pop Notification Banner -->
     <div id="milestone-banner">
       <div id="milestone-text" class="milestone-title">CHECKPOINT 2</div>
       <div id="milestone-sub" class="milestone-sub">SWAP & SPREAD COMBO</div>
     </div>
 
-    <!-- Safe Area Top HUD -->
     <div class="safe-hud-container">
       <div class="hud-pill">
         <span>BEST:</span>
@@ -593,7 +583,6 @@
       </div>
     </div>
 
-    <!-- High-Performance Overlay Touch Buttons -->
     <div class="touch-controls-container">
       <div id="btn-swap" class="touch-btn" role="button" aria-label="Swap Color Positions">
         <div class="btn-icon-row">
@@ -612,7 +601,6 @@
       </div>
     </div>
 
-    <!-- Start Screen Modal -->
     <div id="screen-start" class="modal-screen visible">
       <div class="brand-title">SPLIT REACTION</div>
       <div class="brand-sub">NEON OVERDRIVE</div>
@@ -639,13 +627,12 @@
           <span class="instruction-key">Inner / Outer [D / Space]</span>
         </div>
         <div class="instruction-row">
-          <span style="color: #ffcc00; font-weight: 700;">Streak x5</span>
-          <span class="instruction-key">FEVER 2X MULTIPLIER</span>
+          <span style="color: #ffcc00; font-weight: 700;">Streak x5 (FEVER)</span>
+          <span class="instruction-key">ANY COLOR PASSES [2X PTS]</span>
         </div>
       </div>
     </div>
 
-    <!-- Game Over Screen Modal -->
     <div id="screen-gameover" class="modal-screen">
       <div class="brand-title" style="font-size: 32px; color: #ff2a6d; text-shadow: 0 0 30px #ff2a6d;">CRASHED</div>
       <div class="brand-sub" style="color: rgba(255,255,255,0.4); margin-bottom: 16px;">CIRCUIT SEVERED</div>
@@ -691,9 +678,6 @@
       const COLOR_GATE_BG = '#0e0e16';
       const COLOR_GATE_BORDER = '#20202e';
 
-      // ==========================================
-      // SYNTHESIZER
-      // ==========================================
       class WebAudioSynth {
         constructor() {
           this.ctx = null;
@@ -884,9 +868,6 @@
         }
       }
 
-      // ==========================================
-      // FLOATING TEXT ENGINE
-      // ==========================================
       class FloatingText {
         constructor(x, y, text, color) {
           this.x = x;
@@ -917,9 +898,6 @@
         }
       }
 
-      // ==========================================
-      // PARTICLE ENGINE
-      // ==========================================
       class Particle {
         constructor(x, y, color, vx, vy, size, life) {
           this.x = x;
@@ -955,9 +933,6 @@
         }
       }
 
-      // ==========================================
-      // LASER GATE
-      // ==========================================
       class LaserGate {
         constructor(y, laneRed, laneBlue) {
           this.y = y;
@@ -972,7 +947,7 @@
           this.y += speed * dt;
         }
 
-        draw(ctx) {
+        draw(ctx, isFever) {
           const y = this.y;
           const h = this.height;
 
@@ -998,15 +973,19 @@
 
             ctx.clearRect(gx, y - 2, gateWidth, h + 4);
 
-            ctx.fillStyle = color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)';
+            const beamFill = isFever ? 'rgba(255, 204, 0, 0.16)' : (color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)');
+            ctx.fillStyle = beamFill;
             ctx.fillRect(gx, y, gateWidth, h);
 
-            ctx.fillStyle = color;
-            ctx.shadowColor = glowColor;
+            const activeColor = isFever ? COLOR_GOLD : color;
+            const activeGlow = isFever ? COLOR_GOLD_GLOW : glowColor;
+
+            ctx.fillStyle = activeColor;
+            ctx.shadowColor = activeGlow;
             ctx.shadowBlur = 10;
             ctx.fillRect(gx + 6, y + h / 2 - 3, gateWidth - 12, 6);
 
-            ctx.strokeStyle = color;
+            ctx.strokeStyle = activeColor;
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.moveTo(gx, y - 1);
@@ -1023,9 +1002,6 @@
         }
       }
 
-      // ==========================================
-      // GAME ENGINE
-      // ==========================================
       class NeonRushGame {
         constructor() {
           this.canvas = document.getElementById('game-canvas');
@@ -1348,7 +1324,7 @@
 
         triggerGameOver() {
           this.gameState = 'GAMEOVER';
-          this.freezeTime = 0.12; // 120ms Slow-Mo Freeze Frame
+          this.freezeTime = 0.12;
           audio.playDeath();
           triggerHaptic([50, 30, 80]);
 
@@ -1437,7 +1413,6 @@
 
           if (this.gameState !== 'PLAYING') return;
 
-          // Fever Decay
           if (this.isFever) {
             this.feverTimer -= dt;
             if (this.feverTimer <= 0) {
@@ -1457,7 +1432,6 @@
           this.ballRed.scale += (1.0 - this.ballRed.scale) * (dt * 18);
           this.ballBlue.scale += (1.0 - this.ballBlue.scale) * (dt * 18);
 
-          // Ball Particle Trails
           const trailColorA = this.isFever ? COLOR_GOLD : COLOR_RED;
           const trailColorB = this.isFever ? COLOR_GOLD : COLOR_BLUE;
 
@@ -1487,22 +1461,30 @@
                 const targetRedX = LANE_CENTERS[gate.laneRed];
                 const targetBlueX = LANE_CENTERS[gate.laneBlue];
 
-                const diffRed = Math.abs(this.ballRed.x - targetRedX);
-                const diffBlue = Math.abs(this.ballBlue.x - targetBlueX);
-
                 if (gateCenterY >= PLAYER_Y) {
-                  if (diffRed <= HORIZONTAL_TOLERANCE && diffBlue <= HORIZONTAL_TOLERANCE) {
+                  let isSafe = false;
+
+                  if (this.isFever) {
+                    // FEVER FORGIVENESS: Any ball can pass through any gate opening (Spatial alignment only)
+                    const directMatch = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
+                    const invertedMatch = Math.abs(this.ballRed.x - targetBlueX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetRedX) <= HORIZONTAL_TOLERANCE;
+                    isSafe = directMatch || invertedMatch;
+                  } else {
+                    // Standard Strict Color Match
+                    isSafe = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
+                  }
+
+                  if (isSafe) {
                     gate.passed = true;
                     this.gatesPassed++;
                     this.consecutiveStreak++;
 
-                    // Activate Fever Mode at streak of 5
                     if (this.consecutiveStreak >= 5 && !this.isFever) {
                       this.isFever = true;
-                      this.feverTimer = 4.5;
+                      this.feverTimer = 5.0;
                       audio.playFeverActivation();
                       this.hudScore.classList.add('fever');
-                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'FEVER MODE!', COLOR_GOLD));
+                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'FEVER INVULNERABLE!', COLOR_GOLD));
                     }
 
                     const pointsAdded = this.isFever ? 2 : 1;
@@ -1530,14 +1512,12 @@
             }
           }
 
-          // Update Floating Text
           for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
             if (!this.floatingTexts[i].update(dt)) {
               this.floatingTexts.splice(i, 1);
             }
           }
 
-          // Update Particles
           for (let i = this.particles.length - 1; i >= 0; i--) {
             if (!this.particles[i].update(dt)) {
               this.particles.splice(i, 1);
@@ -1554,7 +1534,7 @@
           this.drawCyberTracks(ctx);
 
           for (const gate of this.gates) {
-            gate.draw(ctx);
+            gate.draw(ctx, this.isFever);
           }
 
           this.drawLaneMarkers(ctx);
@@ -1622,24 +1602,25 @@
             const x = ball.x;
             const y = PLAYER_Y;
             const radius = BALL_RADIUS * ball.scale;
-            const color = this.isFever ? COLOR_GOLD : ball.color;
-            const glow = this.isFever ? COLOR_GOLD_GLOW : ball.glow;
 
             ctx.save();
 
-            ctx.strokeStyle = color;
-            ctx.shadowColor = glow;
-            ctx.shadowBlur = this.isFever ? 26 : 18;
-            ctx.lineWidth = 2.5;
+            // Glowing Outer Ring (Gold in fever mode, or native color)
+            ctx.strokeStyle = this.isFever ? COLOR_GOLD : ball.color;
+            ctx.shadowColor = this.isFever ? COLOR_GOLD_GLOW : ball.glow;
+            ctx.shadowBlur = this.isFever ? 24 : 18;
+            ctx.lineWidth = this.isFever ? 3.5 : 2.5;
             ctx.beginPath();
             ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.fillStyle = color;
+            // Core retains Red and Blue Identity even in Fever
+            ctx.fillStyle = ball.color;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
 
+            // Specular Highlight
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(x - 3.5, y - 3.5, 3.5, 0, Math.PI * 2);
