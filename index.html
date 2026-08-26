@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Split Reaction: Neon Rush</title>
-  <meta name="description" content="A high-reflex cyber-neon arcade game with independent two-thumb controls, smooth continuous speed scaling, and procedural synthwave audio." />
+  <meta name="description" content="A high-reflex cyber-neon arcade game with dedicated Swap & Spread touch pads, 4 distinct ball states, progressive checkpoints, and procedural synthwave audio." />
   <style>
     * {
       box-sizing: border-box;
@@ -29,7 +29,7 @@
       justify-content: center;
     }
 
-    /* Container for mobile & desktop centering */
+    /* Outer Wrapper for responsive mobile & desktop aspect-ratio framing */
     #game-wrapper {
       position: relative;
       width: 100%;
@@ -43,7 +43,6 @@
       background: #04060c;
       box-shadow: 0 0 80px rgba(0, 0, 0, 0.95), 0 0 35px rgba(5, 217, 232, 0.12);
       overflow: hidden;
-      transition: box-shadow 0.5s ease;
     }
 
     @media (min-width: 450px) and (min-height: 700px) {
@@ -60,21 +59,6 @@
       touch-action: none;
     }
 
-    /* Subtle Milestone Shock Flash */
-    #milestone-overlay {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(5, 217, 232, 0.28), transparent 75%);
-      pointer-events: none;
-      opacity: 0;
-      z-index: 8;
-      transition: opacity 0.4s ease-out;
-    }
-
-    #milestone-overlay.flash {
-      opacity: 1;
-    }
-
     /* Screen Shake Container */
     .shake-active {
       animation: screen-shake 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
@@ -85,6 +69,21 @@
       20%, 80% { transform: translate3d(4px, -2px, 0); }
       30%, 50%, 70% { transform: translate3d(-5px, 3px, 0); }
       40%, 60% { transform: translate3d(5px, -1px, 0); }
+    }
+
+    /* Milestone Flash Overlay */
+    #milestone-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(5, 217, 232, 0.3), transparent 75%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 8;
+      transition: opacity 0.4s ease-out;
+    }
+
+    #milestone-overlay.flash {
+      opacity: 1;
     }
 
     /* Safe Area Top HUD */
@@ -103,7 +102,7 @@
       align-items: flex-start;
     }
 
-    /* Top Left Best Score Pill */
+    /* High Score Badge */
     .hud-pill {
       display: inline-flex;
       align-items: center;
@@ -149,7 +148,17 @@
       text-shadow: 0 0 28px #05d9e8;
     }
 
-    /* Controls (Sound & Pause) */
+    .checkpoint-tag {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: #05d9e8;
+      text-transform: uppercase;
+      margin-top: 3px;
+      text-shadow: 0 0 10px rgba(5, 217, 232, 0.5);
+    }
+
+    /* Right Action Buttons (Sound & Pause) */
     .hud-controls-wrap {
       display: flex;
       gap: 6px;
@@ -181,10 +190,10 @@
       transform: scale(0.92);
     }
 
-    /* Milestone Float Notification */
+    /* Checkpoint Floating Banner */
     #milestone-banner {
       position: absolute;
-      top: 28%;
+      top: 26%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0.7);
       pointer-events: none;
@@ -205,99 +214,128 @@
       font-size: 26px;
       font-weight: 900;
       font-style: italic;
-      letter-spacing: 2.5px;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: #05d9e8;
       text-shadow: 0 0 25px rgba(5, 217, 232, 0.85);
       white-space: nowrap;
     }
 
-    /* Two-Thumb Animated Touch Guides at Bottom Corners */
-    .touch-guides-container {
+    .milestone-sub {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin-top: 2px;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    }
+
+    /* ==========================================
+       DEDICATED VISIBLE TOUCH BUTTON CONTROLS
+       ========================================== */
+    .touch-controls-container {
       position: absolute;
-      bottom: 22px;
+      bottom: calc(max(env(safe-area-inset-bottom), 18px));
       left: 0;
       width: 100%;
-      padding: 0 16px;
+      padding: 0 14px;
       display: flex;
       justify-content: space-between;
-      pointer-events: none;
-      z-index: 12;
-      transition: opacity 0.6s ease;
+      gap: 12px;
+      pointer-events: auto;
+      z-index: 20;
     }
 
-    .thumb-card {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      padding: 9px 14px;
-      border-radius: 14px;
-      background: rgba(14, 14, 22, 0.82);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.5);
-      animation: float-thumb 2.6s infinite ease-in-out;
-    }
-
-    .thumb-card.right {
-      animation-delay: 1.3s;
-    }
-
-    @keyframes float-thumb {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-4px); }
-    }
-
-    .thumb-card.left {
-      border-color: rgba(255, 42, 109, 0.3);
-    }
-
-    .thumb-card.right {
-      border-color: rgba(5, 217, 232, 0.3);
-    }
-
-    .thumb-icon {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 900;
-    }
-
-    .thumb-card.left .thumb-icon {
-      background: rgba(255, 42, 109, 0.18);
-      border: 1px solid rgba(255, 42, 109, 0.5);
-      color: #ff2a6d;
-    }
-
-    .thumb-card.right .thumb-icon {
-      background: rgba(5, 217, 232, 0.18);
-      border: 1px solid rgba(5, 217, 232, 0.5);
-      color: #05d9e8;
-    }
-
-    .thumb-text {
+    .touch-pad {
+      flex: 1;
+      height: 76px;
+      border-radius: 18px;
+      background: rgba(14, 14, 24, 0.78);
+      backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.08s cubic-bezier(0.2, 0.8, 0.2, 1), background-color 0.15s, box-shadow 0.15s, border-color 0.15s;
     }
 
-    .thumb-title {
-      font-size: 10px;
+    /* Left Pad: SWAP (Neon Magenta/Coral Glow) */
+    #pad-swap {
+      border: 1.5px solid rgba(255, 42, 109, 0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(255, 42, 109, 0.15);
+    }
+
+    #pad-swap:hover {
+      border-color: rgba(255, 42, 109, 0.7);
+      box-shadow: 0 6px 24px rgba(255, 42, 109, 0.25), inset 0 0 16px rgba(255, 42, 109, 0.25);
+    }
+
+    #pad-swap.active, #pad-swap:active {
+      transform: scale(0.94);
+      border-color: #ff2a6d;
+      background: rgba(255, 42, 109, 0.28);
+      box-shadow: 0 0 30px rgba(255, 42, 109, 0.8), inset 0 0 20px rgba(255, 42, 109, 0.6);
+    }
+
+    /* Right Pad: SPREAD (Neon Cyan Glow) */
+    #pad-spread {
+      border: 1.5px solid rgba(5, 217, 232, 0.4);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 12px rgba(5, 217, 232, 0.15);
+    }
+
+    #pad-spread:hover {
+      border-color: rgba(5, 217, 232, 0.7);
+      box-shadow: 0 6px 24px rgba(5, 217, 232, 0.25), inset 0 0 16px rgba(5, 217, 232, 0.25);
+    }
+
+    #pad-spread.active, #pad-spread:active {
+      transform: scale(0.94);
+      border-color: #05d9e8;
+      background: rgba(5, 217, 232, 0.28);
+      box-shadow: 0 0 30px rgba(5, 217, 232, 0.8), inset 0 0 20px rgba(5, 217, 232, 0.6);
+    }
+
+    .pad-icon-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pad-icon {
+      font-size: 20px;
+      line-height: 1;
       font-weight: 900;
-      letter-spacing: 1.2px;
+    }
+
+    #pad-swap .pad-icon {
+      color: #ff2a6d;
+      text-shadow: 0 0 8px #ff2a6d;
+    }
+
+    #pad-spread .pad-icon {
+      color: #05d9e8;
+      text-shadow: 0 0 8px #05d9e8;
+    }
+
+    .pad-title {
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 2px;
       text-transform: uppercase;
       color: #ffffff;
     }
 
-    .thumb-sub {
-      font-size: 8px;
-      font-weight: 700;
-      letter-spacing: 0.8px;
-      color: rgba(255, 255, 255, 0.55);
+    .pad-subtitle {
+      font-size: 8.5px;
+      font-weight: 800;
+      letter-spacing: 1px;
       text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.6);
     }
 
     /* Modal Screens (Start & Game Over) */
@@ -310,7 +348,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 28px 22px;
+      padding: 28px 20px;
       text-align: center;
       z-index: 30;
       opacity: 0;
@@ -345,7 +383,6 @@
       margin-bottom: 20px;
     }
 
-    /* Pulse Play Button */
     .play-btn-circle {
       width: 74px;
       height: 74px;
@@ -390,10 +427,9 @@
       letter-spacing: 0.3em;
       text-transform: uppercase;
       color: rgba(255, 255, 255, 0.5);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
-    /* High score badge on start */
     .best-badge-start {
       display: inline-flex;
       align-items: center;
@@ -406,10 +442,9 @@
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 1.5px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
 
-    /* Instructions Box */
     .instructions-card {
       width: 100%;
       background: rgba(14, 14, 22, 0.65);
@@ -539,25 +574,24 @@
     <!-- Milestone Overlay -->
     <div id="milestone-overlay"></div>
 
-    <!-- Milestone Notification Floating Banner -->
+    <!-- Checkpoint Pop Notification Banner -->
     <div id="milestone-banner">
-      <div id="milestone-text" class="milestone-title">SPEED UP +10</div>
+      <div id="milestone-text" class="milestone-title">CHECKPOINT 2</div>
+      <div id="milestone-sub" class="milestone-sub">SWAP & SPREAD COMBO</div>
     </div>
 
     <!-- Safe Area Top HUD -->
     <div class="safe-hud-container">
-      <!-- Best Score Tag -->
       <div class="hud-pill">
         <span>BEST:</span>
         <span id="hud-best-val" class="val">0</span>
       </div>
 
-      <!-- Center Score -->
       <div class="score-center-wrap">
         <div id="hud-score" class="main-score">0</div>
+        <div id="hud-checkpoint-tag" class="checkpoint-tag">CP 1: INTRO</div>
       </div>
 
-      <!-- Right Sound / Pause Buttons -->
       <div class="hud-controls-wrap">
         <button id="btn-sound" class="hud-btn" title="Toggle Sound" aria-label="Toggle Sound">
           <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -579,21 +613,22 @@
       </div>
     </div>
 
-    <!-- Animated Two-Thumb Touch Guides (Bottom Corners) -->
-    <div id="touch-guides" class="touch-guides-container">
-      <div class="thumb-card left">
-        <div class="thumb-icon">◀ ▶</div>
-        <div class="thumb-text">
-          <span class="thumb-title">LEFT THUMB</span>
-          <span class="thumb-sub">RED (OUTER / INNER)</span>
+    <!-- Dedicated Visible Touchscreen Control Buttons -->
+    <div class="touch-controls-container">
+      <div id="pad-swap" class="touch-pad" role="button" aria-label="Swap Color Positions">
+        <div class="pad-icon-row">
+          <span class="pad-icon">⇄</span>
+          <span class="pad-title">SWAP</span>
         </div>
+        <span class="pad-subtitle">COLOR ORDER [A]</span>
       </div>
-      <div class="thumb-card right">
-        <div class="thumb-text" style="text-align: right;">
-          <span class="thumb-title">RIGHT THUMB</span>
-          <span class="thumb-sub">BLUE (INNER / OUTER)</span>
+
+      <div id="pad-spread" class="touch-pad" role="button" aria-label="Spread Spacing Width">
+        <div class="pad-icon-row">
+          <span class="pad-icon">⇹</span>
+          <span class="pad-title">SPREAD</span>
         </div>
-        <div class="thumb-icon">◀ ▶</div>
+        <span class="pad-subtitle">INNER / OUTER [D]</span>
       </div>
     </div>
 
@@ -616,16 +651,16 @@
 
       <div class="instructions-card">
         <div class="instruction-row">
-          <span style="color: #ff2a6d; font-weight: 700;">Left Screen Tap</span>
-          <span class="instruction-key">Toggle Red Ball [A / ←]</span>
+          <span style="color: #ff2a6d; font-weight: 700;">Left Button (SWAP)</span>
+          <span class="instruction-key">Swap Red/Blue [A / ←]</span>
         </div>
         <div class="instruction-row">
-          <span style="color: #05d9e8; font-weight: 700;">Right Screen Tap</span>
-          <span class="instruction-key">Toggle Blue Ball [D / →]</span>
+          <span style="color: #05d9e8; font-weight: 700;">Right Button (SPREAD)</span>
+          <span class="instruction-key">Inner / Outer [D / Space]</span>
         </div>
         <div class="instruction-row">
-          <span style="color: rgba(255,255,255,0.6);">Goal</span>
-          <span style="color: #ffffff; font-weight: 700;">Match glowing gate openings</span>
+          <span style="color: rgba(255,255,255,0.6);">Objective</span>
+          <span style="color: #ffffff; font-weight: 700;">Align Red & Blue cores with laser cutouts</span>
         </div>
       </div>
     </div>
@@ -666,16 +701,16 @@
       const VIRTUAL_HEIGHT = 750;
       const NUM_LANES = 4;
       const LANE_WIDTH = VIRTUAL_WIDTH / NUM_LANES; // 100px
-      const LANE_CENTERS = [50, 150, 250, 350]; // Lane 0, 1, 2, 3
-      const PLAYER_Y = VIRTUAL_HEIGHT * 0.78; // 585px
+      const LANE_CENTERS = [50, 150, 250, 350]; // 0: Outer Left, 1: Inner Left, 2: Inner Right, 3: Outer Right
+      const PLAYER_Y = VIRTUAL_HEIGHT * 0.70; // 525px (well above touch buttons)
       const BALL_RADIUS = 13;
 
       // Colors
-      const COLOR_RED = '#ff2a6d';       // Neon Coral Red (Left Ball)
-      const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.7)';
-      const COLOR_BLUE = '#05d9e8';      // Neon Cyan Blue (Right Ball)
-      const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.7)';
-      const COLOR_GATE_BG = '#101018';
+      const COLOR_RED = '#ff2a6d';       // Neon Coral Red
+      const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.75)';
+      const COLOR_BLUE = '#05d9e8';      // Neon Cyan Blue
+      const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.75)';
+      const COLOR_GATE_BG = '#0e0e16';
       const COLOR_GATE_BORDER = '#20202e';
 
       // ==========================================
@@ -713,8 +748,8 @@
           }
         }
 
-        // Subtle soft synth pop on ball shift
-        playTap(isLeftBall) {
+        // Punchy click/synth blip on button press
+        playButtonBlip(isSpread) {
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
@@ -722,11 +757,11 @@
             const gain = this.ctx.createGain();
 
             osc.type = 'sine';
-            const baseFreq = isLeftBall ? 380 : 540;
+            const baseFreq = isSpread ? 620 : 440;
             osc.frequency.setValueAtTime(baseFreq, now);
-            osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.3, now + 0.04);
+            osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.04);
 
-            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.setValueAtTime(0.25, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
 
             osc.connect(gain);
@@ -737,12 +772,12 @@
           } catch (e) {}
         }
 
-        // Harmonic chime on successful gate pass
+        // Ascending harmonic chime on gate pass
         playGatePass(score) {
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
-            const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5]; // C E G A pentatonic
+            const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5]; // Pentatonic scale
             const noteIdx = score % scale.length;
             const rootFreq = scale[noteIdx];
 
@@ -752,9 +787,9 @@
 
               osc.type = i === 0 ? 'sine' : 'triangle';
               osc.frequency.setValueAtTime(rootFreq * mult, now);
-              osc.frequency.exponentialRampToValueAtTime(rootFreq * mult * 1.05, now + 0.1);
+              osc.frequency.exponentialRampToValueAtTime(rootFreq * mult * 1.04, now + 0.1);
 
-              gain.gain.setValueAtTime(0.25 / (i + 1), now);
+              gain.gain.setValueAtTime(0.24 / (i + 1), now);
               gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
               osc.connect(gain);
@@ -766,8 +801,8 @@
           } catch (e) {}
         }
 
-        // Milestone Fanfare Chime every 10 points
-        playMilestoneChime() {
+        // Checkpoint Chime
+        playCheckpointChime() {
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
@@ -793,7 +828,7 @@
           } catch (e) {}
         }
 
-        // Low synth crunch on death
+        // Low synth resonance on Game Over
         playDeath() {
           if (this.muted || !this.ctx) return;
           try {
@@ -857,42 +892,7 @@
       }
 
       // ==========================================
-      // TOUCH RIPPLE RING FEEDBACK
-      // ==========================================
-      class TouchRipple {
-        constructor(x, y, color) {
-          this.x = x;
-          this.y = y;
-          this.color = color;
-          this.radius = 8;
-          this.maxRadius = 45;
-          this.life = 0.3;
-          this.maxLife = 0.3;
-        }
-
-        update(dt) {
-          this.life -= dt;
-          this.radius += (this.maxRadius - this.radius) * (dt * 15);
-          return this.life > 0;
-        }
-
-        draw(ctx) {
-          const alpha = Math.max(0, this.life / this.maxLife);
-          ctx.save();
-          ctx.strokeStyle = this.color;
-          ctx.globalAlpha = alpha * 0.6;
-          ctx.lineWidth = 2.5;
-          ctx.shadowColor = this.color;
-          ctx.shadowBlur = 10;
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-        }
-      }
-
-      // ==========================================
-      // PARTICLE & FLOATING TEXT ENGINE
+      // PARTICLE ENGINE
       // ==========================================
       class Particle {
         constructor(x, y, color, vx, vy, size, life) {
@@ -929,37 +929,6 @@
         }
       }
 
-      class FloatingText {
-        constructor(text, x, y, color, size = 16) {
-          this.text = text;
-          this.x = x;
-          this.y = y;
-          this.color = color;
-          this.size = size;
-          this.life = 0.75;
-          this.maxLife = 0.75;
-        }
-
-        update(dt) {
-          this.y -= 40 * dt;
-          this.life -= dt;
-          return this.life > 0;
-        }
-
-        draw(ctx) {
-          const progress = Math.max(0, this.life / this.maxLife);
-          ctx.save();
-          ctx.globalAlpha = progress;
-          ctx.font = `900 italic ${this.size}px -apple-system, sans-serif`;
-          ctx.fillStyle = this.color;
-          ctx.shadowColor = this.color;
-          ctx.shadowBlur = 10;
-          ctx.textAlign = 'center';
-          ctx.fillText(this.text, this.x, this.y);
-          ctx.restore();
-        }
-      }
-
       // ==========================================
       // LASER GATE OBSTACLE CLASS
       // ==========================================
@@ -967,8 +936,8 @@
         constructor(y, laneRed, laneBlue) {
           this.y = y;
           this.height = 32;
-          this.laneRed = laneRed;   // Lane 0 or 1
-          this.laneBlue = laneBlue; // Lane 2 or 3
+          this.laneRed = laneRed;   // Lane 0..3
+          this.laneBlue = laneBlue; // Lane 0..3
           this.passed = false;
           this.failed = false;
         }
@@ -1000,7 +969,7 @@
           // Colored Gate Openings
           const drawOpening = (laneIndex, color, glowColor) => {
             const laneX = laneIndex * LANE_WIDTH;
-            const gateWidth = 60;
+            const gateWidth = 58;
             const gateOffset = (LANE_WIDTH - gateWidth) / 2;
             const gx = laneX + gateOffset;
 
@@ -1047,10 +1016,15 @@
           // DOM UI Elements
           this.hudScore = document.getElementById('hud-score');
           this.hudBestVal = document.getElementById('hud-best-val');
-          this.touchGuides = document.getElementById('touch-guides');
+          this.hudCheckpointTag = document.getElementById('hud-checkpoint-tag');
           this.milestoneOverlay = document.getElementById('milestone-overlay');
           this.milestoneBanner = document.getElementById('milestone-banner');
           this.milestoneText = document.getElementById('milestone-text');
+          this.milestoneSub = document.getElementById('milestone-sub');
+
+          // Touch Control Button Elements
+          this.padSwap = document.getElementById('pad-swap');
+          this.padSpread = document.getElementById('pad-spread');
 
           // Screens
           this.screenStart = document.getElementById('screen-start');
@@ -1077,34 +1051,33 @@
           // Game State Machine: 'START' | 'PLAYING' | 'PAUSED' | 'GAMEOVER'
           this.gameState = 'START';
 
-          // Independent Ball Positions:
-          // Ball A (Red): lane 0 (outer left) or lane 1 (inner left)
-          // Ball B (Blue): lane 2 (inner right) or lane 3 (outer right)
-          this.ballALane = 1; // starts Inner Left (Lane 1)
-          this.ballBLane = 2; // starts Inner Right (Lane 2)
+          // 4 Distinct Ball State Configurations:
+          // isSwapped: false -> Red Left, Blue Right | true -> Blue Left, Red Right
+          // isSpread:  false -> Inner lanes (1 & 2)  | true -> Outer lanes (0 & 3)
+          this.isSwapped = false;
+          this.isSpread = false;
 
+          // Balls
           this.ballRed = { x: LANE_CENTERS[1], targetX: LANE_CENTERS[1], scale: 1.0, color: COLOR_RED, glow: COLOR_RED_GLOW };
           this.ballBlue = { x: LANE_CENTERS[2], targetX: LANE_CENTERS[2], scale: 1.0, color: COLOR_BLUE, glow: COLOR_BLUE_GLOW };
 
           // Gameplay Metrics
           this.score = 0;
+          this.currentCheckpoint = 1;
           this.gatesPassed = 0;
           this.speed = 140;
 
           // Entities
           this.gates = [];
           this.particles = [];
-          this.touchRipples = [];
-          this.floatingTexts = [];
 
           // Spawning
           this.distanceSinceLastGate = 0;
-          this.nextGateDistance = 340;
+          this.nextGateDistance = 350;
           this.lastGateConfig = null;
 
           // Visual FX
           this.gridOffset = 0;
-          this.touchGuideTimer = 7.0; // Show guides for first 7 seconds
           this.milestoneTimer = null;
 
           // Render Setup
@@ -1135,48 +1108,67 @@
           }
         }
 
-        // ==========================================
-        // INDEPENDENT TWO-THUMB CONTROLS
-        // ==========================================
-        toggleLeftBall(tapCanvasX = null, tapCanvasY = null) {
-          if (this.gameState !== 'PLAYING') return;
-          // Toggle Red Ball between Lane 0 (outer left) and Lane 1 (inner left)
-          this.ballALane = (this.ballALane === 0) ? 1 : 0;
-          this.ballRed.targetX = LANE_CENTERS[this.ballALane];
-          this.ballRed.scale = 1.35; // Snap pop animation
-
-          audio.playTap(true);
-          triggerHaptic([12]);
-
-          if (tapCanvasX !== null && tapCanvasY !== null) {
-            this.touchRipples.push(new TouchRipple(tapCanvasX, tapCanvasY, COLOR_RED));
+        // Resolve Target X based on the 4 State Configurations:
+        // 1. Inner Default: Red 1, Blue 2
+        // 2. Inner Swapped: Blue 1, Red 2
+        // 3. Outer Default: Red 0, Blue 3
+        // 4. Outer Swapped: Blue 0, Red 3
+        resolveTargetPositions() {
+          let redLane, blueLane;
+          if (!this.isSpread) {
+            // Inner
+            redLane = this.isSwapped ? 2 : 1;
+            blueLane = this.isSwapped ? 1 : 2;
           } else {
-            this.touchRipples.push(new TouchRipple(this.ballRed.targetX, PLAYER_Y, COLOR_RED));
+            // Outer
+            redLane = this.isSwapped ? 3 : 0;
+            blueLane = this.isSwapped ? 0 : 3;
           }
 
-          this.spawnShiftBurst(this.ballRed.x, COLOR_RED);
+          this.ballRed.targetX = LANE_CENTERS[redLane];
+          this.ballBlue.targetX = LANE_CENTERS[blueLane];
         }
 
-        toggleRightBall(tapCanvasX = null, tapCanvasY = null) {
+        // ==========================================
+        // DEDICATED ACTION HANDLERS
+        // ==========================================
+        triggerSwap() {
           if (this.gameState !== 'PLAYING') return;
-          // Toggle Blue Ball between Lane 2 (inner right) and Lane 3 (outer right)
-          this.ballBLane = (this.ballBLane === 2) ? 3 : 2;
-          this.ballBlue.targetX = LANE_CENTERS[this.ballBLane];
-          this.ballBlue.scale = 1.35; // Snap pop animation
+          this.isSwapped = !this.isSwapped;
+          this.resolveTargetPositions();
 
-          audio.playTap(false);
+          this.ballRed.scale = 1.3;
+          this.ballBlue.scale = 1.3;
+
+          audio.playButtonBlip(false);
           triggerHaptic([12]);
 
-          if (tapCanvasX !== null && tapCanvasY !== null) {
-            this.touchRipples.push(new TouchRipple(tapCanvasX, tapCanvasY, COLOR_BLUE));
-          } else {
-            this.touchRipples.push(new TouchRipple(this.ballBlue.targetX, PLAYER_Y, COLOR_BLUE));
-          }
+          this.padSwap.classList.add('active');
+          setTimeout(() => this.padSwap.classList.remove('active'), 120);
 
-          this.spawnShiftBurst(this.ballBlue.x, COLOR_BLUE);
+          this.spawnBurst(this.ballRed.x, COLOR_RED);
+          this.spawnBurst(this.ballBlue.x, COLOR_BLUE);
         }
 
-        spawnShiftBurst(x, color) {
+        triggerSpread() {
+          if (this.gameState !== 'PLAYING') return;
+          this.isSpread = !this.isSpread;
+          this.resolveTargetPositions();
+
+          this.ballRed.scale = 1.3;
+          this.ballBlue.scale = 1.3;
+
+          audio.playButtonBlip(true);
+          triggerHaptic([12]);
+
+          this.padSpread.classList.add('active');
+          setTimeout(() => this.padSpread.classList.remove('active'), 120);
+
+          this.spawnBurst(this.ballRed.x, COLOR_RED);
+          this.spawnBurst(this.ballBlue.x, COLOR_BLUE);
+        }
+
+        spawnBurst(x, color) {
           for (let i = 0; i < 4; i++) {
             this.particles.push(
               new Particle(x, PLAYER_Y, color, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, 2.5, 0.22)
@@ -1207,9 +1199,45 @@
             }
           });
 
-          // Keyboard Direct Controls:
-          // 'A' / Left Arrow toggles Left Ball
-          // 'D' / Right Arrow toggles Right Ball
+          // Dedicated 0ms Touch/Pointer Event Listeners
+          const attachTouchHandler = (element, action) => {
+            const handleEvent = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              audio.resume();
+              if (this.gameState === 'START') {
+                this.startGame();
+                return;
+              }
+              action();
+            };
+            element.addEventListener('pointerdown', handleEvent);
+            element.addEventListener('touchstart', handleEvent, { passive: false });
+          };
+
+          attachTouchHandler(this.padSwap, () => this.triggerSwap());
+          attachTouchHandler(this.padSpread, () => this.triggerSpread());
+
+          // Full-screen touch fallback (Left half = Swap, Right half = Spread)
+          this.wrapper.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('.touch-controls-container') || e.target.closest('.hud-controls-wrap') || e.target.closest('.modal-screen')) return;
+            audio.resume();
+            if (this.gameState === 'START') {
+              this.startGame();
+              return;
+            }
+            if (this.gameState !== 'PLAYING') return;
+
+            const rect = this.wrapper.getBoundingClientRect();
+            const tapX = e.clientX - rect.left;
+            if (tapX < rect.width / 2) {
+              this.triggerSwap();
+            } else {
+              this.triggerSpread();
+            }
+          });
+
+          // Keyboard Desktop Controls
           window.addEventListener('keydown', (e) => {
             if (e.repeat) return;
             audio.resume();
@@ -1222,48 +1250,13 @@
             }
 
             if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
-              this.toggleLeftBall();
-            } else if (e.code === 'ArrowRight' || e.code === 'KeyD') {
-              this.toggleRightBall();
+              this.triggerSwap();
+            } else if (e.code === 'ArrowRight' || e.code === 'KeyD' || e.code === 'Space') {
+              this.triggerSpread();
             } else if (e.code === 'KeyM') {
               audio.setMuted(!audio.muted);
               this.updateSoundIcons();
             }
-          });
-
-          // Direct Touch / Pointer Detection with Virtual Coordinates
-          const handleZoneTap = (clientX, clientY) => {
-            audio.resume();
-            if (this.gameState === 'START') {
-              this.startGame();
-              return;
-            }
-            if (this.gameState !== 'PLAYING') return;
-
-            const rect = this.wrapper.getBoundingClientRect();
-            const tapX = clientX - rect.left;
-            const tapY = clientY - rect.top;
-
-            const virtualX = (tapX / rect.width) * VIRTUAL_WIDTH;
-            const virtualY = (tapY / rect.height) * VIRTUAL_HEIGHT;
-
-            if (virtualX < VIRTUAL_WIDTH / 2) {
-              this.toggleLeftBall(virtualX, virtualY);
-            } else {
-              this.toggleRightBall(virtualX, virtualY);
-            }
-          };
-
-          this.wrapper.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-              handleZoneTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-            }
-          }, { passive: false });
-
-          this.wrapper.addEventListener('mousedown', (e) => {
-            if (e.target.closest('.hud-controls-wrap') || e.target.closest('.modal-screen')) return;
-            handleZoneTap(e.clientX, e.clientY);
           });
         }
 
@@ -1271,27 +1264,24 @@
           audio.resume();
           this.gameState = 'PLAYING';
           this.score = 0;
+          this.currentCheckpoint = 1;
           this.gatesPassed = 0;
           this.speed = 140;
 
-          // Initial positions: Inner lanes (1 & 2)
-          this.ballALane = 1;
-          this.ballBLane = 2;
-          this.ballRed.targetX = LANE_CENTERS[1];
-          this.ballBlue.targetX = LANE_CENTERS[2];
-          this.ballRed.x = LANE_CENTERS[1];
-          this.ballBlue.x = LANE_CENTERS[2];
+          // State 1 (Inner Default)
+          this.isSwapped = false;
+          this.isSpread = false;
+          this.resolveTargetPositions();
+          this.ballRed.x = this.ballRed.targetX;
+          this.ballBlue.x = this.ballBlue.targetX;
           this.ballRed.scale = 1.0;
           this.ballBlue.scale = 1.0;
 
           this.gates = [];
           this.particles = [];
-          this.touchRipples = [];
-          this.floatingTexts = [];
           this.distanceSinceLastGate = 0;
-          this.nextGateDistance = 340;
+          this.nextGateDistance = 350;
           this.lastGateConfig = null;
-          this.touchGuideTimer = 7.0;
 
           this.updateHUD();
           this.screenStart.classList.remove('visible');
@@ -1299,31 +1289,47 @@
           this.milestoneBanner.classList.remove('show');
           this.milestoneOverlay.classList.remove('flash');
 
-          // Initial easy gate (Inner lanes 1 & 2)
+          // Initial friendly obstacle (Inner Default)
           this.spawnGate(1, 2, -40);
           this.lastTime = performance.now();
         }
 
-        triggerMilestone(score) {
-          audio.playMilestoneChime();
-          triggerHaptic([35, 40, 45]);
+        checkCheckpointTransition(newScore) {
+          let newCp = 1;
+          if (newScore >= 19) newCp = 3;
+          else if (newScore >= 8) newCp = 2;
 
-          // Pulse flash overlay
+          if (newCp !== this.currentCheckpoint) {
+            this.currentCheckpoint = newCp;
+            this.triggerCheckpointBanner(newCp);
+          }
+        }
+
+        triggerCheckpointBanner(cp) {
+          audio.playCheckpointChime();
+          triggerHaptic([30, 40, 50]);
+
           this.milestoneOverlay.classList.add('flash');
           setTimeout(() => this.milestoneOverlay.classList.remove('flash'), 500);
 
-          // Banner popup
-          this.milestoneText.textContent = `SCORE ${score} MILESTONE!`;
+          if (cp === 2) {
+            this.milestoneText.textContent = 'CHECKPOINT 2';
+            this.milestoneSub.textContent = 'SWAP & SPREAD COMBO';
+          } else {
+            this.milestoneText.textContent = 'CHECKPOINT 3';
+            this.milestoneSub.textContent = 'HYPER VELOCITY';
+          }
+
           this.milestoneBanner.classList.add('show');
           if (this.milestoneTimer) clearTimeout(this.milestoneTimer);
           this.milestoneTimer = setTimeout(() => {
             this.milestoneBanner.classList.remove('show');
-          }, 1400);
+          }, 1500);
 
-          // Particle burst
-          for (let i = 0; i < 24; i++) {
+          // Particles
+          for (let i = 0; i < 26; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const spd = 70 + Math.random() * 220;
+            const spd = 80 + Math.random() * 220;
             this.particles.push(
               new Particle(
                 VIRTUAL_WIDTH / 2,
@@ -1379,25 +1385,31 @@
         }
 
         spawnGate(forceRed = null, forceBlue = null, customY = -30) {
-          // 4 Standard Alignment Configurations:
-          // 1. Both Inner (Lanes 1 & 2)
-          // 2. Both Outer (Lanes 0 & 3)
-          // 3. Left Outer, Right Inner (Lanes 0 & 2)
-          // 4. Left Inner, Right Outer (Lanes 1 & 3)
-          const configs = [
-            { r: 1, b: 2 }, // Both Inner
-            { r: 0, b: 3 }, // Both Outer
-            { r: 0, b: 2 }, // Left Outer, Right Inner
-            { r: 1, b: 3 }  // Left Inner, Right Outer
-          ];
+          // 4 Valid States:
+          // 1. Inner Default: Red 1, Blue 2
+          // 2. Outer Default: Red 0, Blue 3
+          // 3. Inner Swapped: Red 2, Blue 1
+          // 4. Outer Swapped: Red 3, Blue 0
+          const state1 = { r: 1, b: 2 };
+          const state2 = { r: 0, b: 3 };
+          const state3 = { r: 2, b: 1 };
+          const state4 = { r: 3, b: 0 };
+
+          let pool;
+          if (this.score <= 7) {
+            // Checkpoint 1: Single action transitions (Spread only OR Swap only)
+            pool = [state1, state2, state3];
+          } else {
+            // Checkpoints 2 & 3: Full 4-state combinations
+            pool = [state1, state2, state3, state4];
+          }
 
           let choice;
           if (forceRed !== null && forceBlue !== null) {
             choice = { r: forceRed, b: forceBlue };
           } else {
-            // Pick a different pattern than the last one
-            const pool = configs.filter(c => !this.lastGateConfig || (c.r !== this.lastGateConfig.r || c.b !== this.lastGateConfig.b));
-            choice = pool[Math.floor(Math.random() * pool.length)];
+            const filtered = pool.filter(c => !this.lastGateConfig || (c.r !== this.lastGateConfig.r || c.b !== this.lastGateConfig.b));
+            choice = filtered[Math.floor(Math.random() * filtered.length)];
           }
 
           this.lastGateConfig = choice;
@@ -1406,8 +1418,8 @@
 
           this.distanceSinceLastGate = 0;
 
-          // Obstacle Spacing: 340px for scores 0-10, smoothly scaling down to 260px at score 40+
-          const spacingCurve = 260 + 80 * Math.exp(-0.045 * this.score);
+          // Progressive Spacing Curve: 350px for early scores down to 260px at higher scores
+          const spacingCurve = 260 + 90 * Math.exp(-0.045 * this.score);
           this.nextGateDistance = spacingCurve;
         }
 
@@ -1415,28 +1427,28 @@
           this.hudScore.textContent = this.score;
           this.hudScore.classList.add('bump');
           setTimeout(() => this.hudScore.classList.remove('bump'), 100);
+
+          if (this.currentCheckpoint === 1) {
+            this.hudCheckpointTag.textContent = 'CP 1: INTRO';
+          } else if (this.currentCheckpoint === 2) {
+            this.hudCheckpointTag.textContent = 'CP 2: COMBO';
+          } else {
+            this.hudCheckpointTag.textContent = 'CP 3: HYPER';
+          }
         }
 
         update(dt) {
           if (this.gameState !== 'PLAYING') return;
 
-          // Touch guide fade timer
-          if (this.touchGuideTimer > 0) {
-            this.touchGuideTimer -= dt;
-            if (this.touchGuideTimer <= 0) {
-              this.touchGuides.style.opacity = '0.35';
-            }
-          }
-
           // Smooth Asymptotic Speed Progression:
-          // Base 140 px/s at score 0, ~200 px/s at score 15, maxing out gently near 320 px/s
-          this.speed = 140 + (180 * (1 - Math.exp(-0.035 * this.score)));
+          // speed = 140 + (190 * (1 - Math.exp(-0.035 * score)))
+          this.speed = 140 + (190 * (1 - Math.exp(-0.035 * this.score)));
 
           // Background Scrolling Grid
           this.gridOffset = (this.gridOffset + this.speed * dt) % 40;
 
-          // High-Speed Snappy Lerp (~40ms transition, lerp factor ~48)
-          const lerpFactor = 1 - Math.exp(-dt * 48);
+          // Snappy Exponential Lerp (~50ms transition)
+          const lerpFactor = 1 - Math.exp(-dt * 42);
           this.ballRed.x += (this.ballRed.targetX - this.ballRed.x) * lerpFactor;
           this.ballBlue.x += (this.ballBlue.targetX - this.ballBlue.x) * lerpFactor;
 
@@ -1458,7 +1470,7 @@
 
           // Collision & Clear Checking with ±14px Vertical Grace Window
           const VERTICAL_GRACE = 14;
-          const HORIZONTAL_TOLERANCE = 36; // ±36px near-miss tolerance for 100px lane width
+          const HORIZONTAL_TOLERANCE = 36;
 
           for (let i = this.gates.length - 1; i >= 0; i--) {
             const gate = this.gates[i];
@@ -1484,12 +1496,8 @@
 
                     audio.playGatePass(this.score);
                     triggerHaptic([12]);
+                    this.checkCheckpointTransition(this.score);
                     this.updateHUD();
-
-                    // Check milestone every 10 points
-                    if (this.score > 0 && this.score % 10 === 0) {
-                      this.triggerMilestone(this.score);
-                    }
                   } else {
                     gate.failed = true;
                     this.triggerGameOver();
@@ -1504,24 +1512,10 @@
             }
           }
 
-          // Update Touch Ripples
-          for (let i = this.touchRipples.length - 1; i >= 0; i--) {
-            if (!this.touchRipples[i].update(dt)) {
-              this.touchRipples.splice(i, 1);
-            }
-          }
-
           // Update Particles
           for (let i = this.particles.length - 1; i >= 0; i--) {
             if (!this.particles[i].update(dt)) {
               this.particles.splice(i, 1);
-            }
-          }
-
-          // Update Floating Texts
-          for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
-            if (!this.floatingTexts[i].update(dt)) {
-              this.floatingTexts.splice(i, 1);
             }
           }
         }
@@ -1530,14 +1524,14 @@
           const ctx = this.ctx;
           ctx.save();
 
-          // Clear Canvas Background
+          // Background
           ctx.fillStyle = '#04060c';
           ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-          // 1. Cyber Grid & Vertical Track Dividers
-          this.drawTracks(ctx);
+          // 1. Cyber Grid & Vertical Tracks
+          this.drawCyberTracks(ctx);
 
-          // 2. Laser Gates
+          // 2. Gates
           for (const gate of this.gates) {
             gate.draw(ctx);
           }
@@ -1545,28 +1539,18 @@
           // 3. Lane Center Markers
           this.drawLaneMarkers(ctx);
 
-          // 4. Touch Ripples
-          for (const r of this.touchRipples) {
-            r.draw(ctx);
-          }
-
-          // 5. Particles
+          // 4. Particles
           for (const p of this.particles) {
             p.draw(ctx);
           }
 
-          // 6. Player Balls (Red & Blue)
+          // 5. Player Balls
           this.drawPlayerBalls(ctx);
-
-          // 7. Floating Texts
-          for (const ft of this.floatingTexts) {
-            ft.draw(ctx);
-          }
 
           ctx.restore();
         }
 
-        drawTracks(ctx) {
+        drawCyberTracks(ctx) {
           ctx.save();
 
           // Horizontal Scrolling Lines
@@ -1582,7 +1566,7 @@
           // 4 Vertical Tracks
           for (let i = 1; i < NUM_LANES; i++) {
             const x = i * LANE_WIDTH;
-            ctx.strokeStyle = (i === 2) ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.035)';
+            ctx.strokeStyle = (i === 2) ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)';
             ctx.lineWidth = (i === 2) ? 1.5 : 1;
             ctx.beginPath();
             ctx.moveTo(x, 0);
@@ -1605,9 +1589,9 @@
           ctx.setLineDash([]);
 
           for (let i = 0; i < NUM_LANES; i++) {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.035)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.04)';
             ctx.beginPath();
-            ctx.arc(LANE_CENTERS[i], PLAYER_Y, 13, 0, Math.PI * 2);
+            ctx.arc(LANE_CENTERS[i], PLAYER_Y, 14, 0, Math.PI * 2);
             ctx.fill();
           }
           ctx.restore();
@@ -1617,20 +1601,20 @@
           const drawBall = (ball) => {
             const x = ball.x;
             const y = PLAYER_Y;
-            const radius = BALL_RADIUS * ball.scale;
+            const radius = BALL_RADIUS * (ball.scale || 1.0);
 
             ctx.save();
 
-            // Outer Neon Glow Ring
+            // Glowing Outer Ring
             ctx.strokeStyle = ball.color;
             ctx.shadowColor = ball.glow;
-            ctx.shadowBlur = 16;
+            ctx.shadowBlur = 18;
             ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
             ctx.stroke();
 
-            // Core Fill
+            // Solid Core
             ctx.fillStyle = ball.color;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
@@ -1639,7 +1623,7 @@
             // Specular Highlight
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
-            ctx.arc(x - radius * 0.28, y - radius * 0.28, radius * 0.28, 0, Math.PI * 2);
+            ctx.arc(x - 3.5, y - 3.5, 3.5, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
