@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Split Reaction: Neon Rush</title>
-  <meta name="description" content="A high-reflex cyber-neon arcade game with responsive 0ms Swap & Spread touch buttons, 4 ball configurations, and procedural synthwave audio." />
+  <title>Split Reaction: Neon Overdrive</title>
+  <meta name="description" content="A high-reflex cyber-neon arcade game with fever combos, floating floating text feedback, procedural audio, and instant touch controls." />
   <style>
     * {
       box-sizing: border-box;
@@ -20,7 +20,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background-color: #040407;
+      background-color: #030408;
       color: #ffffff;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
       touch-action: none;
@@ -29,7 +29,7 @@
       justify-content: center;
     }
 
-    /* Outer Wrapper for responsive mobile & desktop aspect-ratio framing */
+    /* Framing Container */
     #game-wrapper {
       position: relative;
       width: 100%;
@@ -40,15 +40,16 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #04060c;
-      box-shadow: 0 0 80px rgba(0, 0, 0, 0.95), 0 0 35px rgba(5, 217, 232, 0.12);
+      background: #030408;
+      box-shadow: 0 0 90px rgba(0, 0, 0, 0.95), 0 0 40px rgba(5, 217, 232, 0.15);
       overflow: hidden;
+      transition: background-color 1s ease;
     }
 
     @media (min-width: 450px) and (min-height: 700px) {
       #game-wrapper {
-        border-radius: 24px;
-        border: 1px solid #1a1a2a;
+        border-radius: 26px;
+        border: 1px solid #1a1a2e;
       }
     }
 
@@ -61,32 +62,32 @@
 
     /* Screen Shake Container */
     .shake-active {
-      animation: screen-shake 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+      animation: screen-shake 0.24s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
     }
 
     @keyframes screen-shake {
-      10%, 90% { transform: translate3d(-3px, 1px, 0); }
-      20%, 80% { transform: translate3d(4px, -2px, 0); }
-      30%, 50%, 70% { transform: translate3d(-5px, 3px, 0); }
-      40%, 60% { transform: translate3d(5px, -1px, 0); }
+      10%, 90% { transform: translate3d(-4px, 2px, 0); }
+      20%, 80% { transform: translate3d(5px, -3px, 0); }
+      30%, 50%, 70% { transform: translate3d(-6px, 4px, 0); }
+      40%, 60% { transform: translate3d(6px, -2px, 0); }
     }
 
     /* Milestone Flash Overlay */
     #milestone-overlay {
       position: absolute;
       inset: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(5, 217, 232, 0.3), transparent 75%);
+      background: radial-gradient(circle at 50% 50%, rgba(5, 217, 232, 0.4), transparent 75%);
       pointer-events: none;
       opacity: 0;
       z-index: 8;
-      transition: opacity 0.4s ease-out;
+      transition: opacity 0.35s ease-out;
     }
 
     #milestone-overlay.flash {
       opacity: 1;
     }
 
-    /* Safe Area Top HUD */
+    /* Top Safe HUD */
     .safe-hud-container {
       position: absolute;
       top: 0;
@@ -129,7 +130,7 @@
     }
 
     .main-score {
-      font-size: 44px;
+      font-size: 46px;
       font-weight: 900;
       font-style: italic;
       line-height: 0.95;
@@ -144,6 +145,11 @@
       transform: scale(1.22);
       color: #05d9e8;
       text-shadow: 0 0 28px #05d9e8;
+    }
+
+    .main-score.fever {
+      color: #ffcc00 !important;
+      text-shadow: 0 0 30px #ffcc00 !important;
     }
 
     .checkpoint-tag {
@@ -222,7 +228,7 @@
       text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
-    /* High-Performance Touch Buttons */
+    /* Bottom Touch Buttons */
     .touch-controls-container {
       position: absolute;
       bottom: calc(max(env(safe-area-inset-bottom), 18px));
@@ -609,7 +615,7 @@
     <!-- Start Screen Modal -->
     <div id="screen-start" class="modal-screen visible">
       <div class="brand-title">SPLIT REACTION</div>
-      <div class="brand-sub">NEON RUSH</div>
+      <div class="brand-sub">NEON OVERDRIVE</div>
 
       <div class="best-badge-start">
         <span>★ BEST:</span>
@@ -633,8 +639,8 @@
           <span class="instruction-key">Inner / Outer [D / Space]</span>
         </div>
         <div class="instruction-row">
-          <span style="color: rgba(255,255,255,0.6);">Objective</span>
-          <span style="color: #ffffff; font-weight: 700;">Align Red & Blue cores with gates</span>
+          <span style="color: #ffcc00; font-weight: 700;">Streak x5</span>
+          <span class="instruction-key">FEVER 2X MULTIPLIER</span>
         </div>
       </div>
     </div>
@@ -671,7 +677,7 @@
       const VIRTUAL_WIDTH = 400;
       const VIRTUAL_HEIGHT = 750;
       const NUM_LANES = 4;
-      const LANE_WIDTH = VIRTUAL_WIDTH / NUM_LANES; // 100px
+      const LANE_WIDTH = VIRTUAL_WIDTH / NUM_LANES;
       const LANE_CENTERS = [50, 150, 250, 350];
       const PLAYER_Y = VIRTUAL_HEIGHT * 0.70;
       const BALL_RADIUS = 13;
@@ -680,9 +686,14 @@
       const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.75)';
       const COLOR_BLUE = '#05d9e8';
       const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.75)';
+      const COLOR_GOLD = '#ffcc00';
+      const COLOR_GOLD_GLOW = 'rgba(255, 204, 0, 0.85)';
       const COLOR_GATE_BG = '#0e0e16';
       const COLOR_GATE_BORDER = '#20202e';
 
+      // ==========================================
+      // SYNTHESIZER
+      // ==========================================
       class WebAudioSynth {
         constructor() {
           this.ctx = null;
@@ -727,7 +738,7 @@
             osc.frequency.setValueAtTime(baseFreq, now);
             osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.04);
 
-            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.setValueAtTime(0.22, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
 
             osc.connect(gain);
@@ -738,13 +749,13 @@
           } catch (e) {}
         }
 
-        playGatePass(score) {
+        playGatePass(score, isFever) {
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
             const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5];
             const noteIdx = score % scale.length;
-            const rootFreq = scale[noteIdx];
+            const rootFreq = scale[noteIdx] * (isFever ? 1.25 : 1.0);
 
             [1, 1.5].forEach((mult, i) => {
               const osc = this.ctx.createOscillator();
@@ -752,9 +763,9 @@
 
               osc.type = i === 0 ? 'sine' : 'triangle';
               osc.frequency.setValueAtTime(rootFreq * mult, now);
-              osc.frequency.exponentialRampToValueAtTime(rootFreq * mult * 1.04, now + 0.1);
+              osc.frequency.exponentialRampToValueAtTime(rootFreq * mult * 1.05, now + 0.1);
 
-              gain.gain.setValueAtTime(0.24 / (i + 1), now);
+              gain.gain.setValueAtTime((isFever ? 0.35 : 0.22) / (i + 1), now);
               gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
               osc.connect(gain);
@@ -762,6 +773,29 @@
 
               osc.start(now);
               osc.stop(now + 0.12);
+            });
+          } catch (e) {}
+        }
+
+        playFeverActivation() {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const chord = [523.25, 659.25, 783.99, 1046.5];
+            chord.forEach((freq, idx) => {
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+              osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + idx * 0.04 + 0.3);
+
+              gain.gain.setValueAtTime(0.25, now + idx * 0.04);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.35);
+
+              osc.connect(gain);
+              gain.connect(this.masterGain);
+              osc.start(now + idx * 0.04);
+              osc.stop(now + idx * 0.04 + 0.35);
             });
           } catch (e) {}
         }
@@ -799,23 +833,23 @@
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.exponentialRampToValueAtTime(30, now + 0.45);
+            osc.frequency.setValueAtTime(240, now);
+            osc.frequency.exponentialRampToValueAtTime(25, now + 0.48);
 
-            gain.gain.setValueAtTime(0.7, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            gain.gain.setValueAtTime(0.75, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
 
             osc.connect(gain);
             gain.connect(this.masterGain);
 
             osc.start(now);
-            osc.stop(now + 0.45);
+            osc.stop(now + 0.48);
 
-            const bufferSize = this.ctx.sampleRate * 0.25;
+            const bufferSize = this.ctx.sampleRate * 0.28;
             const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < bufferSize; i++) {
-              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.07));
+              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.08));
             }
 
             const noise = this.ctx.createBufferSource();
@@ -823,19 +857,19 @@
 
             const filter = this.ctx.createBiquadFilter();
             filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(700, now);
-            filter.frequency.exponentialRampToValueAtTime(100, now + 0.25);
+            filter.frequency.setValueAtTime(800, now);
+            filter.frequency.exponentialRampToValueAtTime(80, now + 0.28);
 
             const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(0.5, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            noiseGain.gain.setValueAtTime(0.6, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
 
             noise.connect(filter);
             filter.connect(noiseGain);
             noiseGain.connect(this.masterGain);
 
             noise.start(now);
-            noise.stop(now + 0.25);
+            noise.stop(now + 0.28);
           } catch (e) {}
         }
       }
@@ -850,6 +884,42 @@
         }
       }
 
+      // ==========================================
+      // FLOATING TEXT ENGINE
+      // ==========================================
+      class FloatingText {
+        constructor(x, y, text, color) {
+          this.x = x;
+          this.y = y;
+          this.text = text;
+          this.color = color;
+          this.life = 0.55;
+          this.maxLife = 0.55;
+        }
+
+        update(dt) {
+          this.y -= 45 * dt;
+          this.life -= dt;
+          return this.life > 0;
+        }
+
+        draw(ctx) {
+          const progress = Math.max(0, this.life / this.maxLife);
+          ctx.save();
+          ctx.globalAlpha = progress;
+          ctx.font = '900 13px -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillStyle = this.color;
+          ctx.shadowColor = this.color;
+          ctx.shadowBlur = 10;
+          ctx.fillText(this.text, this.x, this.y);
+          ctx.restore();
+        }
+      }
+
+      // ==========================================
+      // PARTICLE ENGINE
+      // ==========================================
       class Particle {
         constructor(x, y, color, vx, vy, size, life) {
           this.x = x;
@@ -885,6 +955,9 @@
         }
       }
 
+      // ==========================================
+      // LASER GATE
+      // ==========================================
       class LaserGate {
         constructor(y, laneRed, laneBlue) {
           this.y = y;
@@ -950,6 +1023,9 @@
         }
       }
 
+      // ==========================================
+      // GAME ENGINE
+      // ==========================================
       class NeonRushGame {
         constructor() {
           this.canvas = document.getElementById('game-canvas');
@@ -996,10 +1072,15 @@
           this.score = 0;
           this.currentCheckpoint = 1;
           this.gatesPassed = 0;
+          this.consecutiveStreak = 0;
+          this.isFever = false;
+          this.feverTimer = 0;
+          this.freezeTime = 0;
           this.speed = 135;
 
           this.gates = [];
           this.particles = [];
+          this.floatingTexts = [];
           this.distanceSinceLastGate = 0;
           this.nextGateDistance = 380;
           this.lastGateConfig = null;
@@ -1053,8 +1134,8 @@
           this.isSwapped = !this.isSwapped;
           this.resolveTargetPositions();
 
-          this.ballRed.scale = 1.25;
-          this.ballBlue.scale = 1.25;
+          this.ballRed.scale = 1.3;
+          this.ballBlue.scale = 1.3;
 
           audio.playButtonBlip(false);
           triggerHaptic([12]);
@@ -1071,8 +1152,8 @@
           this.isSpread = !this.isSpread;
           this.resolveTargetPositions();
 
-          this.ballRed.scale = 1.25;
-          this.ballBlue.scale = 1.25;
+          this.ballRed.scale = 1.3;
+          this.ballBlue.scale = 1.3;
 
           audio.playButtonBlip(true);
           triggerHaptic([12]);
@@ -1087,7 +1168,7 @@
         spawnBurst(x, color) {
           for (let i = 0; i < 4; i++) {
             this.particles.push(
-              new Particle(x, PLAYER_Y, color, (Math.random() - 0.5) * 50, (Math.random() - 0.5) * 50, 2.5, 0.22)
+              new Particle(x, PLAYER_Y, color, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 2.5, 0.22)
             );
           }
         }
@@ -1180,6 +1261,10 @@
           this.score = 0;
           this.currentCheckpoint = 1;
           this.gatesPassed = 0;
+          this.consecutiveStreak = 0;
+          this.isFever = false;
+          this.feverTimer = 0;
+          this.freezeTime = 0;
           this.speed = 135;
 
           this.isSwapped = false;
@@ -1192,9 +1277,13 @@
 
           this.gates = [];
           this.particles = [];
+          this.floatingTexts = [];
           this.distanceSinceLastGate = 0;
           this.nextGateDistance = 380;
           this.lastGateConfig = null;
+
+          this.wrapper.style.backgroundColor = '#030408';
+          this.hudScore.classList.remove('fever');
 
           this.updateHUD();
           this.screenStart.classList.remove('visible');
@@ -1227,9 +1316,11 @@
           if (cp === 2) {
             this.milestoneText.textContent = 'CHECKPOINT 2';
             this.milestoneSub.textContent = 'SWAP & SPREAD COMBO';
+            this.wrapper.style.backgroundColor = '#080312';
           } else {
             this.milestoneText.textContent = 'CHECKPOINT 3';
-            this.milestoneSub.textContent = 'HYPER VELOCITY';
+            this.milestoneSub.textContent = 'HYPER OVERDRIVE';
+            this.wrapper.style.backgroundColor = '#120409';
           }
 
           this.milestoneBanner.classList.add('show');
@@ -1238,7 +1329,7 @@
             this.milestoneBanner.classList.remove('show');
           }, 1500);
 
-          for (let i = 0; i < 26; i++) {
+          for (let i = 0; i < 28; i++) {
             const angle = Math.random() * Math.PI * 2;
             const spd = 80 + Math.random() * 220;
             this.particles.push(
@@ -1257,23 +1348,24 @@
 
         triggerGameOver() {
           this.gameState = 'GAMEOVER';
+          this.freezeTime = 0.12; // 120ms Slow-Mo Freeze Frame
           audio.playDeath();
           triggerHaptic([50, 30, 80]);
 
           this.wrapper.classList.add('shake-active');
-          setTimeout(() => this.wrapper.classList.remove('shake-active'), 240);
+          setTimeout(() => this.wrapper.classList.remove('shake-active'), 250);
 
-          for (let i = 0; i < 35; i++) {
+          for (let i = 0; i < 40; i++) {
             const angleA = Math.random() * Math.PI * 2;
-            const spdA = 60 + Math.random() * 240;
+            const spdA = 80 + Math.random() * 260;
             this.particles.push(
-              new Particle(this.ballRed.x, PLAYER_Y, COLOR_RED, Math.cos(angleA) * spdA, Math.sin(angleA) * spdA, 3 + Math.random() * 4, 0.55)
+              new Particle(this.ballRed.x, PLAYER_Y, COLOR_RED, Math.cos(angleA) * spdA, Math.sin(angleA) * spdA, 3 + Math.random() * 4, 0.6)
             );
 
             const angleB = Math.random() * Math.PI * 2;
-            const spdB = 60 + Math.random() * 240;
+            const spdB = 80 + Math.random() * 260;
             this.particles.push(
-              new Particle(this.ballBlue.x, PLAYER_Y, COLOR_BLUE, Math.cos(angleB) * spdB, Math.sin(angleB) * spdB, 3 + Math.random() * 4, 0.55)
+              new Particle(this.ballBlue.x, PLAYER_Y, COLOR_BLUE, Math.cos(angleB) * spdB, Math.sin(angleB) * spdB, 3 + Math.random() * 4, 0.6)
             );
           }
 
@@ -1290,7 +1382,7 @@
           setTimeout(() => {
             this.screenGameOver.classList.add('visible');
             this.milestoneBanner.classList.remove('show');
-          }, 320);
+          }, 350);
         }
 
         spawnGate(forceRed = null, forceBlue = null, customY = -30) {
@@ -1329,16 +1421,31 @@
           setTimeout(() => this.hudScore.classList.remove('bump'), 100);
 
           if (this.currentCheckpoint === 1) {
-            this.hudCheckpointTag.textContent = 'CP 1: INTRO';
+            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 1: INTRO';
           } else if (this.currentCheckpoint === 2) {
-            this.hudCheckpointTag.textContent = 'CP 2: COMBO';
+            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 2: COMBO';
           } else {
-            this.hudCheckpointTag.textContent = 'CP 3: HYPER';
+            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 3: HYPER';
           }
         }
 
         update(dt) {
+          if (this.freezeTime > 0) {
+            this.freezeTime -= dt;
+            return;
+          }
+
           if (this.gameState !== 'PLAYING') return;
+
+          // Fever Decay
+          if (this.isFever) {
+            this.feverTimer -= dt;
+            if (this.feverTimer <= 0) {
+              this.isFever = false;
+              this.hudScore.classList.remove('fever');
+              this.updateHUD();
+            }
+          }
 
           this.speed = 135 + (180 * (1 - Math.exp(-0.035 * this.score)));
           this.gridOffset = (this.gridOffset + this.speed * dt) % 40;
@@ -1350,9 +1457,13 @@
           this.ballRed.scale += (1.0 - this.ballRed.scale) * (dt * 18);
           this.ballBlue.scale += (1.0 - this.ballBlue.scale) * (dt * 18);
 
+          // Ball Particle Trails
+          const trailColorA = this.isFever ? COLOR_GOLD : COLOR_RED;
+          const trailColorB = this.isFever ? COLOR_GOLD : COLOR_BLUE;
+
           this.particles.push(
-            new Particle(this.ballRed.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, COLOR_RED, (Math.random() - 0.5) * 10, 30 + Math.random() * 25, 2.2, 0.2),
-            new Particle(this.ballBlue.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, COLOR_BLUE, (Math.random() - 0.5) * 10, 30 + Math.random() * 25, 2.2, 0.2)
+            new Particle(this.ballRed.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, trailColorA, (Math.random() - 0.5) * 10, 30 + Math.random() * 25, 2.2, 0.2),
+            new Particle(this.ballBlue.x + (Math.random() - 0.5) * 4, PLAYER_Y + 4, trailColorB, (Math.random() - 0.5) * 10, 30 + Math.random() * 25, 2.2, 0.2)
           );
 
           this.distanceSinceLastGate += this.speed * dt;
@@ -1383,9 +1494,25 @@
                   if (diffRed <= HORIZONTAL_TOLERANCE && diffBlue <= HORIZONTAL_TOLERANCE) {
                     gate.passed = true;
                     this.gatesPassed++;
-                    this.score++;
+                    this.consecutiveStreak++;
 
-                    audio.playGatePass(this.score);
+                    // Activate Fever Mode at streak of 5
+                    if (this.consecutiveStreak >= 5 && !this.isFever) {
+                      this.isFever = true;
+                      this.feverTimer = 4.5;
+                      audio.playFeverActivation();
+                      this.hudScore.classList.add('fever');
+                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'FEVER MODE!', COLOR_GOLD));
+                    }
+
+                    const pointsAdded = this.isFever ? 2 : 1;
+                    this.score += pointsAdded;
+
+                    const label = this.isFever ? '+2 FEVER!' : (this.consecutiveStreak >= 3 ? 'PERFECT!' : 'CLEARED');
+                    const labelColor = this.isFever ? COLOR_GOLD : '#ffffff';
+                    this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, label, labelColor));
+
+                    audio.playGatePass(this.score, this.isFever);
                     triggerHaptic([12]);
                     this.checkCheckpointTransition(this.score);
                     this.updateHUD();
@@ -1403,6 +1530,14 @@
             }
           }
 
+          // Update Floating Text
+          for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
+            if (!this.floatingTexts[i].update(dt)) {
+              this.floatingTexts.splice(i, 1);
+            }
+          }
+
+          // Update Particles
           for (let i = this.particles.length - 1; i >= 0; i--) {
             if (!this.particles[i].update(dt)) {
               this.particles.splice(i, 1);
@@ -1414,8 +1549,7 @@
           const ctx = this.ctx;
           ctx.save();
 
-          ctx.fillStyle = '#04060c';
-          ctx.fillRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+          ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
           this.drawCyberTracks(ctx);
 
@@ -1429,6 +1563,10 @@
             p.draw(ctx);
           }
 
+          for (const ft of this.floatingTexts) {
+            ft.draw(ctx);
+          }
+
           this.drawPlayerBalls(ctx);
 
           ctx.restore();
@@ -1437,7 +1575,7 @@
         drawCyberTracks(ctx) {
           ctx.save();
 
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.025)';
+          ctx.strokeStyle = this.isFever ? 'rgba(255, 204, 0, 0.08)' : 'rgba(255, 255, 255, 0.025)';
           ctx.lineWidth = 1;
           for (let y = this.gridOffset; y < VIRTUAL_HEIGHT; y += 40) {
             ctx.beginPath();
@@ -1484,18 +1622,20 @@
             const x = ball.x;
             const y = PLAYER_Y;
             const radius = BALL_RADIUS * ball.scale;
+            const color = this.isFever ? COLOR_GOLD : ball.color;
+            const glow = this.isFever ? COLOR_GOLD_GLOW : ball.glow;
 
             ctx.save();
 
-            ctx.strokeStyle = ball.color;
-            ctx.shadowColor = ball.glow;
-            ctx.shadowBlur = 18;
+            ctx.strokeStyle = color;
+            ctx.shadowColor = glow;
+            ctx.shadowBlur = this.isFever ? 26 : 18;
             ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
             ctx.stroke();
 
-            ctx.fillStyle = ball.color;
+            ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
