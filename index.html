@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Split Reaction: Neon Overdrive</title>
-  <meta name="description" content="A high-reflex cyber-neon arcade game with fever combos, floating text feedback, procedural audio, and instant touch controls." />
+  <meta name="description" content="A high-reflex cyber-neon arcade game with fever destruction, charging meters, procedural audio, and instant touch controls." />
   <style>
     * {
       box-sizing: border-box;
@@ -84,6 +84,7 @@
       opacity: 1;
     }
 
+    /* Safe Area Top HUD */
     .safe-hud-container {
       position: absolute;
       top: 0;
@@ -95,8 +96,15 @@
       pointer-events: none;
       z-index: 15;
       display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .hud-top-row {
+      display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      width: 100%;
     }
 
     .hud-pill {
@@ -126,7 +134,7 @@
     }
 
     .main-score {
-      font-size: 46px;
+      font-size: 44px;
       font-weight: 900;
       font-style: italic;
       line-height: 0.95;
@@ -149,7 +157,7 @@
     }
 
     .checkpoint-tag {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 900;
       letter-spacing: 1.5px;
       color: #05d9e8;
@@ -184,9 +192,61 @@
       transform: scale(0.92);
     }
 
+    /* Fever Meter Bar */
+    .fever-meter-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .fever-meter-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      position: relative;
+    }
+
+    .fever-meter-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff2a6d, #ffcc00);
+      border-radius: 999px;
+      box-shadow: 0 0 12px #ffcc00;
+      transition: width 0.1s ease-out;
+    }
+
+    .fever-meter-fill.active {
+      background: #ffcc00;
+      box-shadow: 0 0 16px #ffcc00, inset 0 0 8px #ffffff;
+      animation: fever-pulse 0.6s infinite alternate;
+    }
+
+    @keyframes fever-pulse {
+      0% { filter: brightness(1); }
+      100% { filter: brightness(1.6); }
+    }
+
+    .fever-meter-label {
+      font-size: 8.5px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      color: rgba(255, 255, 255, 0.5);
+      text-transform: uppercase;
+    }
+
+    .fever-meter-label.active {
+      color: #ffcc00;
+      text-shadow: 0 0 8px #ffcc00;
+    }
+
     #milestone-banner {
       position: absolute;
-      top: 26%;
+      top: 28%;
       left: 50%;
       transform: translate(-50%, -50%) scale(0.7);
       pointer-events: none;
@@ -551,38 +611,50 @@
       <div id="milestone-sub" class="milestone-sub">SWAP & SPREAD COMBO</div>
     </div>
 
+    <!-- Top HUD & Fever Charge Meter -->
     <div class="safe-hud-container">
-      <div class="hud-pill">
-        <span>BEST:</span>
-        <span id="hud-best-val" class="val">0</span>
+      <div class="hud-top-row">
+        <div class="hud-pill">
+          <span>BEST:</span>
+          <span id="hud-best-val" class="val">0</span>
+        </div>
+
+        <div class="score-center-wrap">
+          <div id="hud-score" class="main-score">0</div>
+          <div id="hud-checkpoint-tag" class="checkpoint-tag">CP 1: INTRO</div>
+        </div>
+
+        <div class="hud-controls-wrap">
+          <button id="btn-sound" class="hud-btn" title="Toggle Sound" aria-label="Toggle Sound">
+            <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            </svg>
+            <svg id="icon-sound-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+              <line x1="23" y1="9" x2="17" y2="15"></line>
+              <line x1="17" y1="9" x2="23" y2="15"></line>
+            </svg>
+          </button>
+          <button id="btn-pause" class="hud-btn" title="Pause Game" aria-label="Pause Game">
+            <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16" rx="1"></rect>
+              <rect x="14" y="4" width="4" height="16" rx="1"></rect>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div class="score-center-wrap">
-        <div id="hud-score" class="main-score">0</div>
-        <div id="hud-checkpoint-tag" class="checkpoint-tag">CP 1: INTRO</div>
-      </div>
-
-      <div class="hud-controls-wrap">
-        <button id="btn-sound" class="hud-btn" title="Toggle Sound" aria-label="Toggle Sound">
-          <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-          </svg>
-          <svg id="icon-sound-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
-            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-            <line x1="23" y1="9" x2="17" y2="15"></line>
-            <line x1="17" y1="9" x2="23" y2="15"></line>
-          </svg>
-        </button>
-        <button id="btn-pause" class="hud-btn" title="Pause Game" aria-label="Pause Game">
-          <svg id="icon-pause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-            <rect x="6" y="4" width="4" height="16" rx="1"></rect>
-            <rect x="14" y="4" width="4" height="16" rx="1"></rect>
-          </svg>
-        </button>
+      <!-- Charging Meter -->
+      <div class="fever-meter-wrap">
+        <div class="fever-meter-track">
+          <div id="fever-fill" class="fever-meter-fill"></div>
+        </div>
+        <div id="fever-label" class="fever-meter-label">FEVER CHARGE: 0%</div>
       </div>
     </div>
 
+    <!-- Bottom Controls -->
     <div class="touch-controls-container">
       <div id="btn-swap" class="touch-btn" role="button" aria-label="Swap Color Positions">
         <div class="btn-icon-row">
@@ -601,6 +673,7 @@
       </div>
     </div>
 
+    <!-- Start Modal -->
     <div id="screen-start" class="modal-screen visible">
       <div class="brand-title">SPLIT REACTION</div>
       <div class="brand-sub">NEON OVERDRIVE</div>
@@ -627,12 +700,13 @@
           <span class="instruction-key">Inner / Outer [D / Space]</span>
         </div>
         <div class="instruction-row">
-          <span style="color: #ffcc00; font-weight: 700;">Streak x5 (FEVER)</span>
-          <span class="instruction-key">ANY COLOR PASSES [2X PTS]</span>
+          <span style="color: #ffcc00; font-weight: 700;">Fill Meter (6 Gates)</span>
+          <span class="instruction-key">FEVER DESTROYER [2X PTS]</span>
         </div>
       </div>
     </div>
 
+    <!-- Game Over Modal -->
     <div id="screen-gameover" class="modal-screen">
       <div class="brand-title" style="font-size: 32px; color: #ff2a6d; text-shadow: 0 0 30px #ff2a6d;">CRASHED</div>
       <div class="brand-sub" style="color: rgba(255,255,255,0.4); margin-bottom: 16px;">CIRCUIT SEVERED</div>
@@ -739,7 +813,7 @@
             const now = this.ctx.currentTime;
             const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5];
             const noteIdx = score % scale.length;
-            const rootFreq = scale[noteIdx] * (isFever ? 1.25 : 1.0);
+            const rootFreq = scale[noteIdx] * (isFever ? 1.3 : 1.0);
 
             [1, 1.5].forEach((mult, i) => {
               const osc = this.ctx.createOscillator();
@@ -758,6 +832,26 @@
               osc.start(now);
               osc.stop(now + 0.12);
             });
+          } catch (e) {}
+        }
+
+        playShatter() {
+          if (this.muted || !this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(480, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.16);
+
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.16);
           } catch (e) {}
         }
 
@@ -940,6 +1034,7 @@
           this.laneRed = laneRed;
           this.laneBlue = laneBlue;
           this.passed = false;
+          this.shattered = false;
           this.failed = false;
         }
 
@@ -948,15 +1043,17 @@
         }
 
         draw(ctx, isFever) {
+          if (this.shattered) return;
+
           const y = this.y;
           const h = this.height;
 
           ctx.save();
 
-          ctx.fillStyle = COLOR_GATE_BG;
+          ctx.fillStyle = isFever ? 'rgba(255, 204, 0, 0.12)' : COLOR_GATE_BG;
           ctx.fillRect(0, y, VIRTUAL_WIDTH, h);
 
-          ctx.strokeStyle = COLOR_GATE_BORDER;
+          ctx.strokeStyle = isFever ? COLOR_GOLD : COLOR_GATE_BORDER;
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(0, y);
@@ -973,7 +1070,7 @@
 
             ctx.clearRect(gx, y - 2, gateWidth, h + 4);
 
-            const beamFill = isFever ? 'rgba(255, 204, 0, 0.16)' : (color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)');
+            const beamFill = isFever ? 'rgba(255, 204, 0, 0.22)' : (color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)');
             ctx.fillStyle = beamFill;
             ctx.fillRect(gx, y, gateWidth, h);
 
@@ -1011,6 +1108,9 @@
           this.hudScore = document.getElementById('hud-score');
           this.hudBestVal = document.getElementById('hud-best-val');
           this.hudCheckpointTag = document.getElementById('hud-checkpoint-tag');
+          this.feverFill = document.getElementById('fever-fill');
+          this.feverLabel = document.getElementById('fever-label');
+
           this.milestoneOverlay = document.getElementById('milestone-overlay');
           this.milestoneBanner = document.getElementById('milestone-banner');
           this.milestoneText = document.getElementById('milestone-text');
@@ -1048,8 +1148,11 @@
           this.score = 0;
           this.currentCheckpoint = 1;
           this.gatesPassed = 0;
-          this.consecutiveStreak = 0;
+
+          // Meter Charge System: 6 gates needed for 100%
+          this.feverCharge = 0;
           this.isFever = false;
+          this.feverDuration = 5.0;
           this.feverTimer = 0;
           this.freezeTime = 0;
           this.speed = 135;
@@ -1149,6 +1252,18 @@
           }
         }
 
+        spawnShatter(y) {
+          for (let i = 0; i < 35; i++) {
+            const px = Math.random() * VIRTUAL_WIDTH;
+            const py = y + (Math.random() - 0.5) * 20;
+            const angle = Math.random() * Math.PI * 2;
+            const spd = 120 + Math.random() * 260;
+            this.particles.push(
+              new Particle(px, py, COLOR_GOLD, Math.cos(angle) * spd, Math.sin(angle) * spd, 3.5, 0.45)
+            );
+          }
+        }
+
         bindControls() {
           const startTrigger = (e) => {
             if (e) {
@@ -1237,7 +1352,8 @@
           this.score = 0;
           this.currentCheckpoint = 1;
           this.gatesPassed = 0;
-          this.consecutiveStreak = 0;
+
+          this.feverCharge = 0;
           this.isFever = false;
           this.feverTimer = 0;
           this.freezeTime = 0;
@@ -1260,6 +1376,8 @@
 
           this.wrapper.style.backgroundColor = '#030408';
           this.hudScore.classList.remove('fever');
+          this.feverFill.classList.remove('active');
+          this.feverLabel.classList.remove('active');
 
           this.updateHUD();
           this.screenStart.classList.remove('visible');
@@ -1396,12 +1514,22 @@
           this.hudScore.classList.add('bump');
           setTimeout(() => this.hudScore.classList.remove('bump'), 100);
 
-          if (this.currentCheckpoint === 1) {
-            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 1: INTRO';
-          } else if (this.currentCheckpoint === 2) {
-            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 2: COMBO';
+          if (this.isFever) {
+            const remainingPct = Math.max(0, (this.feverTimer / this.feverDuration) * 100);
+            this.feverFill.style.width = remainingPct + '%';
+            this.feverLabel.textContent = `FEVER ACTIVE: ${this.feverTimer.toFixed(1)}s`;
+            this.hudCheckpointTag.textContent = 'FEVER OVERDRIVE (2X)';
           } else {
-            this.hudCheckpointTag.textContent = this.isFever ? 'FEVER MODE x2!' : 'CP 3: HYPER';
+            this.feverFill.style.width = Math.min(100, this.feverCharge) + '%';
+            this.feverLabel.textContent = `FEVER CHARGE: ${Math.round(this.feverCharge)}%`;
+
+            if (this.currentCheckpoint === 1) {
+              this.hudCheckpointTag.textContent = 'CP 1: INTRO';
+            } else if (this.currentCheckpoint === 2) {
+              this.hudCheckpointTag.textContent = 'CP 2: COMBO';
+            } else {
+              this.hudCheckpointTag.textContent = 'CP 3: HYPER';
+            }
           }
         }
 
@@ -1413,13 +1541,17 @@
 
           if (this.gameState !== 'PLAYING') return;
 
+          // Fever Expiration Handling
           if (this.isFever) {
             this.feverTimer -= dt;
             if (this.feverTimer <= 0) {
               this.isFever = false;
+              this.feverCharge = 0;
               this.hudScore.classList.remove('fever');
-              this.updateHUD();
+              this.feverFill.classList.remove('active');
+              this.feverLabel.classList.remove('active');
             }
+            this.updateHUD();
           }
 
           this.speed = 135 + (180 * (1 - Math.exp(-0.035 * this.score)));
@@ -1456,52 +1588,62 @@
             const gateBottom = gate.y + gate.height;
             const gateCenterY = gate.y + gate.height / 2;
 
-            if (!gate.passed && !gate.failed) {
+            if (!gate.passed && !gate.shattered && !gate.failed) {
               if (gateBottom >= PLAYER_Y - BALL_RADIUS - VERTICAL_GRACE && gateTop <= PLAYER_Y + BALL_RADIUS + VERTICAL_GRACE) {
                 const targetRedX = LANE_CENTERS[gate.laneRed];
                 const targetBlueX = LANE_CENTERS[gate.laneBlue];
 
                 if (gateCenterY >= PLAYER_Y) {
-                  let isSafe = false;
-
                   if (this.isFever) {
-                    // FEVER FORGIVENESS: Any ball can pass through any gate opening (Spatial alignment only)
-                    const directMatch = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
-                    const invertedMatch = Math.abs(this.ballRed.x - targetBlueX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetRedX) <= HORIZONTAL_TOLERANCE;
-                    isSafe = directMatch || invertedMatch;
-                  } else {
-                    // Standard Strict Color Match
-                    isSafe = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE && Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
-                  }
-
-                  if (isSafe) {
+                    // TRUE INVULNERABILITY: Any contact shatters the gate into golden debris
                     gate.passed = true;
+                    gate.shattered = true;
                     this.gatesPassed++;
-                    this.consecutiveStreak++;
+                    this.score += 2;
 
-                    if (this.consecutiveStreak >= 5 && !this.isFever) {
-                      this.isFever = true;
-                      this.feverTimer = 5.0;
-                      audio.playFeverActivation();
-                      this.hudScore.classList.add('fever');
-                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'FEVER INVULNERABLE!', COLOR_GOLD));
-                    }
+                    this.spawnShatter(gate.y);
+                    audio.playShatter();
+                    triggerHaptic([20]);
 
-                    const pointsAdded = this.isFever ? 2 : 1;
-                    this.score += pointsAdded;
+                    this.wrapper.classList.add('shake-active');
+                    setTimeout(() => this.wrapper.classList.remove('shake-active'), 180);
 
-                    const label = this.isFever ? '+2 FEVER!' : (this.consecutiveStreak >= 3 ? 'PERFECT!' : 'CLEARED');
-                    const labelColor = this.isFever ? COLOR_GOLD : '#ffffff';
-                    this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, label, labelColor));
-
-                    audio.playGatePass(this.score, this.isFever);
-                    triggerHaptic([12]);
+                    this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'SHATTERED! +2', COLOR_GOLD));
                     this.checkCheckpointTransition(this.score);
                     this.updateHUD();
                   } else {
-                    gate.failed = true;
-                    this.triggerGameOver();
-                    return;
+                    // Standard Strict Matching
+                    const matchRed = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE;
+                    const matchBlue = Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
+
+                    if (matchRed && matchBlue) {
+                      gate.passed = true;
+                      this.gatesPassed++;
+                      this.score += 1;
+
+                      // Charge fever meter by ~16.7% per gate
+                      this.feverCharge += (100 / 6);
+                      if (this.feverCharge >= 99.9) {
+                        this.isFever = true;
+                        this.feverCharge = 100;
+                        this.feverTimer = this.feverDuration;
+                        audio.playFeverActivation();
+                        this.hudScore.classList.add('fever');
+                        this.feverFill.classList.add('active');
+                        this.feverLabel.classList.add('active');
+                        this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'INVINCIBLE FEVER!', COLOR_GOLD));
+                      }
+
+                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'CLEARED!', '#ffffff'));
+                      audio.playGatePass(this.score, false);
+                      triggerHaptic([12]);
+                      this.checkCheckpointTransition(this.score);
+                      this.updateHUD();
+                    } else {
+                      gate.failed = true;
+                      this.triggerGameOver();
+                      return;
+                    }
                   }
                 }
               }
@@ -1605,7 +1747,6 @@
 
             ctx.save();
 
-            // Glowing Outer Ring (Gold in fever mode, or native color)
             ctx.strokeStyle = this.isFever ? COLOR_GOLD : ball.color;
             ctx.shadowColor = this.isFever ? COLOR_GOLD_GLOW : ball.glow;
             ctx.shadowBlur = this.isFever ? 24 : 18;
@@ -1614,13 +1755,11 @@
             ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
             ctx.stroke();
 
-            // Core retains Red and Blue Identity even in Fever
             ctx.fillStyle = ball.color;
             ctx.beginPath();
             ctx.arc(x, y, radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Specular Highlight
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(x - 3.5, y - 3.5, 3.5, 0, Math.PI * 2);
