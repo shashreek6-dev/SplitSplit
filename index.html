@@ -192,6 +192,7 @@
       transform: scale(0.92);
     }
 
+    /* Fever Meter Bar */
     .fever-meter-wrap {
       width: 100%;
       display: flex;
@@ -396,7 +397,7 @@
       opacity: 0;
       pointer-events: none;
       touch-action: manipulation;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .modal-screen.visible {
@@ -506,18 +507,24 @@
       transform: scale(0.95);
     }
 
-    /* Pop-up Guide Card */
+    /* Pop-up Guide Card with Smooth Entrance Animation */
     .tutorial-card {
       width: 100%;
       max-width: 340px;
-      background: rgba(14, 15, 25, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(14, 15, 25, 0.96);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 20px;
       padding: 22px 18px;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(5, 217, 232, 0.1);
+      box-shadow: 0 0 50px rgba(0, 0, 0, 0.9), 0 0 25px rgba(5, 217, 232, 0.15);
+      transform: scale(0.92);
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .modal-screen.visible .tutorial-card {
+      transform: scale(1);
     }
 
     .tutorial-header {
@@ -1297,12 +1304,12 @@
           this.bindControls();
           this.updateSoundIcons();
 
-          // Auto-show tutorial on very first visit
-          const hasSeenTutorial = localStorage.getItem('split_neon_tutorial_seen');
-          if (!hasSeenTutorial) {
-            this.screenTutorial.classList.add('visible');
-            localStorage.setItem('split_neon_tutorial_seen', 'true');
-          }
+          // Smooth 550ms delayed appearance on initial load
+          setTimeout(() => {
+            if (this.gameState === 'START') {
+              this.screenTutorial.classList.add('visible');
+            }
+          }, 550);
 
           requestAnimationFrame((t) => this.loop(t));
         }
