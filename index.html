@@ -8,9 +8,11 @@
     />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Drive-Thru Dash</title>
-    <!-- CrazyGames SDK v2 CDN -->
+    <title>Split Reaction: Neon Overdrive</title>
+
+    <!-- CrazyGames SDK v2 -->
     <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+
     <style>
       * {
         box-sizing: border-box;
@@ -20,240 +22,19 @@
         -webkit-user-select: none;
         -webkit-touch-callout: none;
       }
-      body, html {
+      body, html, #root {
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #0f172a;
-        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background: #09090b;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         touch-action: none;
         overscroll-behavior: none;
-      }
-      #canvas-container {
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      #ui-layer {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        pointer-events: none;
-        padding: env(safe-area-inset-top, 16px) env(safe-area-inset-right, 16px) env(safe-area-inset-bottom, 16px) env(safe-area-inset-left, 16px);
-      }
-
-      /* Glassmorphic Top HUD */
-      .hud-header {
-        position: absolute;
-        top: 16px;
-        left: 16px;
-        right: 16px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        z-index: 10;
-      }
-      .cash-card {
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 2px solid rgba(74, 222, 128, 0.6);
-        border-radius: 18px;
-        padding: 8px 18px;
-        color: #f8fafc;
-        font-size: 22px;
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-        transition: transform 0.1s ease;
-      }
-      .cash-card.bump {
-        transform: scale(1.15);
-        border-color: #22c55e;
-      }
-      .badge-container {
-        display: flex;
-        gap: 6px;
-      }
-      .stat-badge {
-        background: rgba(15, 23, 42, 0.8);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 14px;
-        padding: 6px 12px;
-        color: #94a3b8;
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
-      }
-      .stat-badge span {
-        color: #38bdf8;
-        font-weight: 900;
-        margin-left: 3px;
-      }
-
-      /* First-Time User Experience (FTUE) Tutorial Banner */
-      #tutorial-bubble {
-        position: absolute;
-        top: 76px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(15, 23, 42, 0.92);
-        backdrop-filter: blur(12px);
-        border: 2px solid #38bdf8;
-        border-radius: 20px;
-        padding: 10px 24px;
-        color: #ffffff;
-        font-size: 15px;
-        font-weight: 800;
-        text-align: center;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-        transition: all 0.3s ease;
-        z-index: 15;
-      }
-
-      /* Floating Cash Popups */
-      .cash-float {
-        position: absolute;
-        font-size: 24px;
-        font-weight: 900;
-        color: #4ade80;
-        text-shadow: 0 2px 6px rgba(0,0,0,0.8);
-        pointer-events: none;
-        animation: floatUp 0.8s ease-out forwards;
-      }
-      @keyframes floatUp {
-        0% { opacity: 1; transform: translate(-50%, 0) scale(0.8); }
-        50% { transform: translate(-50%, -30px) scale(1.2); }
-        100% { opacity: 0; transform: translate(-50%, -60px) scale(1); }
-      }
-
-      /* Rewarded Ad Booster Button */
-      #rewarded-btn {
-        position: absolute;
-        bottom: 24px;
-        right: 18px;
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        border: 2px solid #fef08a;
-        border-radius: 18px;
-        padding: 10px 16px;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 900;
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        pointer-events: auto;
-        cursor: pointer;
-        box-shadow: 0 8px 18px rgba(217, 119, 6, 0.5);
-        z-index: 10;
-        transition: transform 0.1s ease;
-      }
-      #rewarded-btn:active {
-        transform: scale(0.92);
-      }
-
-      /* Floating Virtual Nipple */
-      #joystick-base {
-        position: absolute;
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 70%);
-        border: 2px dashed rgba(255, 255, 255, 0.3);
-        display: none;
-        pointer-events: none;
-        transform: translate(-50%, -50%);
-        z-index: 5;
-      }
-      #joystick-stick {
-        position: absolute;
-        top: 35px;
-        left: 35px;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-        box-shadow: 0 6px 16px rgba(2, 132, 199, 0.6);
-        pointer-events: none;
-      }
-
-      /* Title Screen / Start Overlay */
-      #start-screen {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(circle at center, rgba(15, 23, 42, 0.85) 0%, rgba(15, 23, 42, 0.98) 100%);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 20px;
-        z-index: 100;
-        pointer-events: auto;
-        backdrop-filter: blur(8px);
-      }
-      #start-title {
-        font-size: 38px;
-        font-weight: 900;
-        color: #f8fafc;
-        text-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
-        text-align: center;
-        letter-spacing: -0.5px;
-      }
-      #start-title span {
-        color: #38bdf8;
-      }
-      #play-btn {
-        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        border: 3px solid #86efac;
-        border-radius: 28px;
-        padding: 16px 54px;
-        color: #ffffff;
-        font-size: 24px;
-        font-weight: 900;
-        cursor: pointer;
-        box-shadow: 0 10px 25px rgba(22, 163, 74, 0.5);
-        transition: transform 0.15s ease;
-      }
-      #play-btn:active {
-        transform: scale(0.94);
       }
     </style>
   </head>
   <body>
-    <div id="canvas-container"></div>
-    <div id="ui-layer">
-      <div class="hud-header">
-        <div class="cash-card" id="cash-card">
-          <span>💵</span>
-          $<span id="cash-val">0</span>
-        </div>
-        <div class="badge-container">
-          <div class="stat-badge">Staff: <span id="staff-val">0/5</span></div>
-          <div class="stat-badge">Menu: <span id="menu-val">1/4</span></div>
-        </div>
-      </div>
-      <div id="tutorial-bubble">☕ Run to the Espresso Machine!</div>
-      <button id="rewarded-btn">📺 +$75 Cash</button>
-      <div id="joystick-base"><div id="joystick-stick"></div></div>
-    </div>
-
-    <!-- Start Splash Screen Overlay -->
-    <div id="start-screen">
-      <div id="start-title">DRIVE-THRU<br /><span>DASH</span></div>
-      <button id="play-btn">PLAY NOW</button>
-    </div>
-
-    <script type="module" src="/src/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
