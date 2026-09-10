@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Split Reaction: Neon Overdrive</title>
-  <meta name="description" content="A high-reflex cyber-neon arcade game with fever destruction, charging meters, procedural audio, and instant touch controls." />
+  <meta name="description" content="A high-reflex cyber-neon arcade game with fever destruction, procedural audio, and instant touch controls." />
+
+  <!-- Official CrazyGames SDK v2 -->
+  <script src="https://sdk.crazygames.com/crazygames-sdk-v2.js"></script>
+
   <style>
     * {
       box-sizing: border-box;
@@ -22,7 +26,7 @@
       overflow: hidden;
       background-color: #030408;
       color: #ffffff;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       touch-action: none;
       display: flex;
       align-items: center;
@@ -33,8 +37,8 @@
       position: relative;
       width: 100%;
       height: 100%;
-      max-width: 420px;
-      max-height: 840px;
+      max-width: 440px;
+      max-height: 880px;
       aspect-ratio: 400 / 750;
       display: flex;
       align-items: center;
@@ -64,10 +68,10 @@
     }
 
     @keyframes screen-shake {
-      10%, 90% { transform: translate3d(-4px, 2px, 0); }
-      20%, 80% { transform: translate3d(5px, -3px, 0); }
-      30%, 50%, 70% { transform: translate3d(-6px, 4px, 0); }
-      40%, 60% { transform: translate3d(6px, -2px, 0); }
+      10%, 90% { transform: translate3d(-5px, 2px, 0); }
+      20%, 80% { transform: translate3d(6px, -4px, 0); }
+      30%, 50%, 70% { transform: translate3d(-7px, 5px, 0); }
+      40%, 60% { transform: translate3d(7px, -3px, 0); }
     }
 
     #milestone-overlay {
@@ -90,14 +94,14 @@
       top: 0;
       left: 0;
       width: 100%;
-      padding-top: calc(max(env(safe-area-inset-top), 24px));
+      padding-top: calc(max(env(safe-area-inset-top), 20px));
       padding-left: 18px;
       padding-right: 18px;
       pointer-events: none;
       z-index: 15;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
 
     .hud-top-row {
@@ -120,7 +124,6 @@
       font-weight: 800;
       letter-spacing: 1.2px;
       color: rgba(255, 255, 255, 0.7);
-      font-variant-numeric: tabular-nums;
     }
 
     .hud-pill .val {
@@ -141,12 +144,11 @@
       letter-spacing: -1.5px;
       color: #ffffff;
       text-shadow: 0 0 22px rgba(255, 255, 255, 0.45);
-      font-variant-numeric: tabular-nums;
       transition: transform 0.12s cubic-bezier(0.175, 0.885, 0.32, 1.275), color 0.15s;
     }
 
     .main-score.bump {
-      transform: scale(1.22);
+      transform: scale(1.25);
       color: #05d9e8;
       text-shadow: 0 0 28px #05d9e8;
     }
@@ -185,7 +187,7 @@
       cursor: pointer;
       backdrop-filter: blur(8px);
       touch-action: manipulation;
-      transition: transform 0.1s, background-color 0.2s, border-color 0.2s;
+      transition: transform 0.1s, background-color 0.2s;
     }
 
     .hud-btn:active {
@@ -208,7 +210,6 @@
       border-radius: 999px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      position: relative;
     }
 
     .fever-meter-fill {
@@ -281,9 +282,9 @@
       text-transform: uppercase;
       color: #ffffff;
       margin-top: 2px;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     }
 
+    /* Touch Controls */
     .touch-controls-container {
       position: absolute;
       bottom: calc(max(env(safe-area-inset-bottom), 18px));
@@ -300,7 +301,7 @@
 
     .touch-btn {
       flex: 1;
-      height: 74px;
+      height: 76px;
       border-radius: 18px;
       background: rgba(14, 14, 24, 0.85);
       backdrop-filter: blur(12px);
@@ -312,8 +313,6 @@
       cursor: pointer;
       position: relative;
       touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
       transition: transform 0.05s ease, background-color 0.1s, box-shadow 0.1s;
     }
 
@@ -323,7 +322,7 @@
     }
 
     #btn-swap.active, #btn-swap:active {
-      transform: scale(0.93);
+      transform: scale(0.94);
       border-color: #ff2a6d;
       background: rgba(255, 42, 109, 0.35);
       box-shadow: 0 0 28px rgba(255, 42, 109, 0.9), inset 0 0 18px rgba(255, 42, 109, 0.6);
@@ -335,7 +334,7 @@
     }
 
     #btn-spread.active, #btn-spread:active {
-      transform: scale(0.93);
+      transform: scale(0.94);
       border-color: #05d9e8;
       background: rgba(5, 217, 232, 0.35);
       box-shadow: 0 0 28px rgba(5, 217, 232, 0.9), inset 0 0 18px rgba(5, 217, 232, 0.6);
@@ -349,7 +348,7 @@
     }
 
     .btn-icon {
-      font-size: 19px;
+      font-size: 20px;
       font-weight: 900;
     }
 
@@ -364,7 +363,7 @@
     }
 
     .btn-title {
-      font-size: 13.5px;
+      font-size: 14px;
       font-weight: 900;
       letter-spacing: 2px;
       text-transform: uppercase;
@@ -373,7 +372,7 @@
     }
 
     .btn-subtitle {
-      font-size: 8.5px;
+      font-size: 9px;
       font-weight: 800;
       letter-spacing: 1px;
       text-transform: uppercase;
@@ -381,7 +380,7 @@
       pointer-events: none;
     }
 
-    /* Modal Screens */
+    /* Modals & Screens */
     .modal-screen {
       position: absolute;
       inset: 0;
@@ -406,7 +405,7 @@
     }
 
     .brand-title {
-      font-size: 38px;
+      font-size: 40px;
       font-weight: 900;
       font-style: italic;
       letter-spacing: -1.5px;
@@ -428,11 +427,11 @@
     }
 
     .play-btn-circle {
-      width: 80px;
-      height: 80px;
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
       border: 2px solid #ffffff;
-      background: rgba(255, 255, 255, 0.06);
+      background: rgba(255, 255, 255, 0.08);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -444,7 +443,7 @@
     }
 
     .play-btn-circle:active {
-      transform: scale(0.94);
+      transform: scale(0.92);
     }
 
     .play-btn-circle svg {
@@ -457,7 +456,7 @@
         box-shadow: 0 0 0 0 rgba(255, 42, 109, 0.4), 0 0 20px rgba(255, 42, 109, 0.4);
       }
       50% {
-        box-shadow: 0 0 0 10px rgba(5, 217, 232, 0), 0 0 35px rgba(5, 217, 232, 0.5);
+        box-shadow: 0 0 0 12px rgba(5, 217, 232, 0), 0 0 35px rgba(5, 217, 232, 0.5);
       }
     }
 
@@ -489,11 +488,11 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 8px 18px;
+      padding: 9px 20px;
       border-radius: 9999px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      color: rgba(255, 255, 255, 0.8);
+      color: rgba(255, 255, 255, 0.85);
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 1.5px;
@@ -507,7 +506,7 @@
       transform: scale(0.95);
     }
 
-    /* Pop-up Guide Card with Smooth Entrance Animation */
+    /* Pop-up Guide Card */
     .tutorial-card {
       width: 100%;
       max-width: 340px;
@@ -533,7 +532,6 @@
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #ffffff;
-      text-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
       margin-bottom: 2px;
     }
 
@@ -564,21 +562,18 @@
       background: rgba(255, 42, 109, 0.15);
       border: 1px solid #ff2a6d;
       color: #ff2a6d;
-      box-shadow: 0 0 10px rgba(255, 42, 109, 0.3);
     }
 
     .tutorial-item.spread .tutorial-icon-box {
       background: rgba(5, 217, 232, 0.15);
       border: 1px solid #05d9e8;
       color: #05d9e8;
-      box-shadow: 0 0 10px rgba(5, 217, 232, 0.3);
     }
 
     .tutorial-item.fever .tutorial-icon-box {
       background: rgba(255, 204, 0, 0.15);
       border: 1px solid #ffcc00;
       color: #ffcc00;
-      box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
     }
 
     .tutorial-text-wrap {
@@ -619,10 +614,6 @@
       transition: all 0.15s ease;
     }
 
-    .btn-close-tutorial:active {
-      transform: scale(0.96);
-    }
-
     /* Game Over */
     .gameover-score-wrap {
       display: flex;
@@ -639,7 +630,6 @@
       line-height: 0.95;
       letter-spacing: -2px;
       text-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
-      font-variant-numeric: tabular-nums;
     }
 
     .gameover-label {
@@ -656,7 +646,7 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      margin-bottom: 22px;
+      margin-bottom: 20px;
     }
 
     .stat-box {
@@ -673,17 +663,45 @@
     .stat-title {
       color: rgba(255, 255, 255, 0.6);
       font-weight: 600;
-      letter-spacing: 0.5px;
     }
 
     .stat-value {
       font-weight: 900;
       color: #05d9e8;
-      font-variant-numeric: tabular-nums;
     }
 
     .stat-value.gold {
       color: #ffcc00;
+    }
+
+    .gameover-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .btn-revive-ad {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px 20px;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #ff2a6d, #ffcc00);
+      border: none;
+      color: #000000;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(255, 204, 0, 0.5);
+      transition: transform 0.15s ease;
+    }
+
+    .btn-revive-ad:active {
+      transform: scale(0.95);
     }
 
     .retry-btn {
@@ -702,7 +720,6 @@
       cursor: pointer;
       touch-action: manipulation;
       transition: all 0.2s ease;
-      box-shadow: 0 0 20px rgba(255, 255, 255, 0.15);
     }
 
     .retry-btn:active {
@@ -736,11 +753,11 @@
 
         <div class="hud-controls-wrap">
           <button id="btn-sound" class="hud-btn" title="Toggle Sound" aria-label="Toggle Sound">
-            <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg id="icon-sound-on" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
               <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
             </svg>
-            <svg id="icon-sound-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+            <svg id="icon-sound-off" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
               <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
               <line x1="23" y1="9" x2="17" y2="15"></line>
               <line x1="17" y1="9" x2="23" y2="15"></line>
@@ -763,7 +780,7 @@
       </div>
     </div>
 
-    <!-- Bottom Controls -->
+    <!-- Bottom Touch Buttons -->
     <div class="touch-controls-container">
       <div id="btn-swap" class="touch-btn" role="button" aria-label="Swap Color Positions">
         <div class="btn-icon-row">
@@ -793,7 +810,7 @@
       </div>
 
       <div class="play-btn-circle" id="btn-start" role="button" aria-label="Start Game">
-        <svg width="26" height="26" viewBox="0 0 24 24">
+        <svg width="28" height="28" viewBox="0 0 24 24">
           <path d="M8 5v14l11-7z"></path>
         </svg>
       </div>
@@ -805,7 +822,7 @@
       </button>
     </div>
 
-    <!-- Dedicated Controls Pop-up Modal -->
+    <!-- How to Play Pop-up -->
     <div id="screen-tutorial" class="modal-screen">
       <div class="tutorial-card">
         <div class="tutorial-header">HOW TO PLAY</div>
@@ -838,7 +855,7 @@
       </div>
     </div>
 
-    <!-- Game Over Screen Modal -->
+    <!-- Game Over Screen Modal with Rewarded Revive -->
     <div id="screen-gameover" class="modal-screen">
       <div class="brand-title" style="font-size: 32px; color: #ff2a6d; text-shadow: 0 0 30px #ff2a6d;">CRASHED</div>
       <div class="brand-sub" style="color: rgba(255,255,255,0.4); margin-bottom: 16px;">CIRCUIT SEVERED</div>
@@ -859,13 +876,25 @@
         </div>
       </div>
 
-      <button id="btn-restart" class="retry-btn">TAP TO RETRY</button>
+      <div class="gameover-actions">
+        <button id="btn-revive" class="btn-revive-ad" type="button">
+          <span>📺</span>
+          <span>REVIVE & CONTINUE</span>
+        </button>
+        <button id="btn-restart" class="retry-btn">TAP TO RETRY</button>
+      </div>
     </div>
   </div>
 
   <script>
     (function () {
       'use strict';
+
+      // --- CRAZYGAMES SDK INTEGRATION ---
+      let crazyGamesSDK = null;
+      if (window.CrazyGames && window.CrazyGames.SDK) {
+        crazyGamesSDK = window.CrazyGames.SDK;
+      }
 
       const VIRTUAL_WIDTH = 400;
       const VIRTUAL_HEIGHT = 750;
@@ -876,19 +905,22 @@
       const BALL_RADIUS = 13;
 
       const COLOR_RED = '#ff2a6d';
-      const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.75)';
+      const COLOR_RED_GLOW = 'rgba(255, 42, 109, 0.85)';
       const COLOR_BLUE = '#05d9e8';
-      const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.75)';
+      const COLOR_BLUE_GLOW = 'rgba(5, 217, 232, 0.85)';
       const COLOR_GOLD = '#ffcc00';
-      const COLOR_GOLD_GLOW = 'rgba(255, 204, 0, 0.9)';
-      const COLOR_GATE_BG = '#0e0e16';
-      const COLOR_GATE_BORDER = '#20202e';
+      const COLOR_GOLD_GLOW = 'rgba(255, 204, 0, 0.95)';
+      const COLOR_GATE_BG = '#0c0e18';
+      const COLOR_GATE_BORDER = '#202438';
 
+      // --- PROCEDURAL CYBERPUNK AUDIO ENGINE ---
       class WebAudioSynth {
         constructor() {
           this.ctx = null;
           this.masterGain = null;
           this.muted = localStorage.getItem('split_neon_muted') === 'true';
+          this.bgmTimer = null;
+          this.bgmStep = 0;
         }
 
         init() {
@@ -897,8 +929,9 @@
           if (!AudioContext) return;
           this.ctx = new AudioContext();
           this.masterGain = this.ctx.createGain();
-          this.masterGain.gain.value = this.muted ? 0 : 0.28;
+          this.masterGain.gain.value = this.muted ? 0 : 0.35;
           this.masterGain.connect(this.ctx.destination);
+          this.startCyberpunkBGM();
         }
 
         resume() {
@@ -912,8 +945,43 @@
           this.muted = mute;
           localStorage.setItem('split_neon_muted', mute);
           if (this.masterGain && this.ctx) {
-            this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.28, this.ctx.currentTime);
+            this.masterGain.gain.setValueAtTime(this.muted ? 0 : 0.35, this.ctx.currentTime);
           }
+        }
+
+        startCyberpunkBGM() {
+          if (this.bgmTimer) return;
+          const bassNotes = [110, 110, 130.81, 98.0, 110, 110, 146.83, 123.47];
+          const tempoInterval = 140; // ~107 BPM driving electronic beat
+
+          this.bgmTimer = setInterval(() => {
+            if (this.muted || !this.ctx || window.splitReactionGame?.gameState !== 'PLAYING') return;
+
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const filter = this.ctx.createBiquadFilter();
+
+            const freq = bassNotes[this.bgmStep % bassNotes.length];
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(freq, now);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(450, now);
+            filter.frequency.exponentialRampToValueAtTime(100, now + 0.12);
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.masterGain);
+
+            osc.start(now);
+            osc.stop(now + 0.12);
+
+            this.bgmStep++;
+          }, tempoInterval);
         }
 
         playButtonBlip(isSpread) {
@@ -924,11 +992,11 @@
             const gain = this.ctx.createGain();
 
             osc.type = 'sine';
-            const baseFreq = isSpread ? 620 : 440;
+            const baseFreq = isSpread ? 640 : 460;
             osc.frequency.setValueAtTime(baseFreq, now);
             osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.04);
 
-            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.setValueAtTime(0.24, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
 
             osc.connect(gain);
@@ -944,8 +1012,7 @@
           try {
             const now = this.ctx.currentTime;
             const scale = [523.25, 587.33, 659.25, 783.99, 880.0, 1046.5, 1174.66, 1318.5];
-            const noteIdx = score % scale.length;
-            const rootFreq = scale[noteIdx] * (isFever ? 1.3 : 1.0);
+            const rootFreq = scale[score % scale.length] * (isFever ? 1.35 : 1.0);
 
             [1, 1.5].forEach((mult, i) => {
               const osc = this.ctx.createOscillator();
@@ -974,16 +1041,16 @@
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(480, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.16);
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
 
-            gain.gain.setValueAtTime(0.4, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+            gain.gain.setValueAtTime(0.45, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
 
             osc.connect(gain);
             gain.connect(this.masterGain);
             osc.start(now);
-            osc.stop(now + 0.16);
+            osc.stop(now + 0.18);
           } catch (e) {}
         }
 
@@ -991,15 +1058,14 @@
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
-            const chord = [523.25, 659.25, 783.99, 1046.5];
-            chord.forEach((freq, idx) => {
+            [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
               const osc = this.ctx.createOscillator();
               const gain = this.ctx.createGain();
               osc.type = 'triangle';
               osc.frequency.setValueAtTime(freq, now + idx * 0.04);
               osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + idx * 0.04 + 0.3);
 
-              gain.gain.setValueAtTime(0.25, now + idx * 0.04);
+              gain.gain.setValueAtTime(0.28, now + idx * 0.04);
               gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.04 + 0.35);
 
               osc.connect(gain);
@@ -1014,22 +1080,18 @@
           if (this.muted || !this.ctx) return;
           try {
             const now = this.ctx.currentTime;
-            const arpeggio = [523.25, 659.25, 783.99, 1046.5, 1318.5];
-            arpeggio.forEach((freq, idx) => {
+            [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((freq, idx) => {
               const noteTime = now + idx * 0.06;
               const osc = this.ctx.createOscillator();
               const gain = this.ctx.createGain();
 
               osc.type = 'sine';
               osc.frequency.setValueAtTime(freq, noteTime);
-              osc.frequency.exponentialRampToValueAtTime(freq * 1.02, noteTime + 0.22);
-
               gain.gain.setValueAtTime(0.3, noteTime);
               gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.28);
 
               osc.connect(gain);
               gain.connect(this.masterGain);
-
               osc.start(noteTime);
               osc.stop(noteTime + 0.28);
             });
@@ -1043,43 +1105,16 @@
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(240, now);
-            osc.frequency.exponentialRampToValueAtTime(25, now + 0.48);
+            osc.frequency.setValueAtTime(260, now);
+            osc.frequency.exponentialRampToValueAtTime(20, now + 0.5);
 
             gain.gain.setValueAtTime(0.75, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
 
             osc.connect(gain);
             gain.connect(this.masterGain);
-
             osc.start(now);
-            osc.stop(now + 0.48);
-
-            const bufferSize = this.ctx.sampleRate * 0.28;
-            const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) {
-              data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.08));
-            }
-
-            const noise = this.ctx.createBufferSource();
-            noise.buffer = buffer;
-
-            const filter = this.ctx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(800, now);
-            filter.frequency.exponentialRampToValueAtTime(80, now + 0.28);
-
-            const noiseGain = this.ctx.createGain();
-            noiseGain.gain.setValueAtTime(0.6, now);
-            noiseGain.gain.exponentialRampToValueAtTime(0.01, now + 0.28);
-
-            noise.connect(filter);
-            filter.connect(noiseGain);
-            noiseGain.connect(this.masterGain);
-
-            noise.start(now);
-            noise.stop(now + 0.28);
+            osc.stop(now + 0.5);
           } catch (e) {}
         }
       }
@@ -1105,7 +1140,7 @@
         }
 
         update(dt) {
-          this.y -= 45 * dt;
+          this.y -= 50 * dt;
           this.life -= dt;
           return this.life > 0;
         }
@@ -1114,7 +1149,7 @@
           const progress = Math.max(0, this.life / this.maxLife);
           ctx.save();
           ctx.globalAlpha = progress;
-          ctx.font = '900 13px -apple-system, sans-serif';
+          ctx.font = '900 14px -apple-system, sans-serif';
           ctx.textAlign = 'center';
           ctx.fillStyle = this.color;
           ctx.shadowColor = this.color;
@@ -1162,7 +1197,7 @@
       class LaserGate {
         constructor(y, laneRed, laneBlue) {
           this.y = y;
-          this.height = 32;
+          this.height = 36;
           this.laneRed = laneRed;
           this.laneBlue = laneBlue;
           this.passed = false;
@@ -1182,6 +1217,7 @@
 
           ctx.save();
 
+          // Barrier Body with Glow
           ctx.fillStyle = COLOR_GATE_BG;
           ctx.fillRect(0, y, VIRTUAL_WIDTH, h);
 
@@ -1194,25 +1230,26 @@
           ctx.lineTo(VIRTUAL_WIDTH, y + h);
           ctx.stroke();
 
+          // Laser Ports
           const drawOpening = (laneIndex, color, glowColor) => {
             const laneX = laneIndex * LANE_WIDTH;
-            const gateWidth = 58;
+            const gateWidth = 62;
             const gateOffset = (LANE_WIDTH - gateWidth) / 2;
             const gx = laneX + gateOffset;
 
             ctx.clearRect(gx, y - 2, gateWidth, h + 4);
 
-            const beamFill = color === COLOR_RED ? 'rgba(255, 42, 109, 0.12)' : 'rgba(5, 217, 232, 0.12)';
+            const beamFill = color === COLOR_RED ? 'rgba(255, 42, 109, 0.16)' : 'rgba(5, 217, 232, 0.16)';
             ctx.fillStyle = beamFill;
             ctx.fillRect(gx, y, gateWidth, h);
 
             ctx.fillStyle = color;
             ctx.shadowColor = glowColor;
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 12;
             ctx.fillRect(gx + 6, y + h / 2 - 3, gateWidth - 12, 6);
 
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 2.5;
             ctx.beginPath();
             ctx.moveTo(gx, y - 1);
             ctx.lineTo(gx, y + h + 1);
@@ -1260,6 +1297,7 @@
           this.btnOpenTutorial = document.getElementById('btn-open-tutorial');
           this.btnCloseTutorial = document.getElementById('btn-close-tutorial');
           this.btnRestart = document.getElementById('btn-restart');
+          this.btnRevive = document.getElementById('btn-revive');
           this.btnSound = document.getElementById('btn-sound');
           this.btnPause = document.getElementById('btn-pause');
           this.iconSoundOn = document.getElementById('icon-sound-on');
@@ -1286,7 +1324,7 @@
           this.feverDuration = 5.0;
           this.feverTimer = 0;
           this.freezeTime = 0;
-          this.speed = 135;
+          this.speed = 150;
 
           this.gates = [];
           this.particles = [];
@@ -1297,19 +1335,13 @@
 
           this.gridOffset = 0;
           this.milestoneTimer = null;
+          this.reviveAvailable = true;
 
           this.lastTime = performance.now();
           this.setupCanvasDPR();
           window.addEventListener('resize', () => this.setupCanvasDPR());
           this.bindControls();
           this.updateSoundIcons();
-
-          // Smooth 550ms delayed appearance on initial load
-          setTimeout(() => {
-            if (this.gameState === 'START') {
-              this.screenTutorial.classList.add('visible');
-            }
-          }, 550);
 
           requestAnimationFrame((t) => this.loop(t));
         }
@@ -1351,8 +1383,8 @@
           this.isSwapped = !this.isSwapped;
           this.resolveTargetPositions();
 
-          this.ballRed.scale = 1.3;
-          this.ballBlue.scale = 1.3;
+          this.ballRed.scale = 1.35;
+          this.ballBlue.scale = 1.35;
 
           audio.playButtonBlip(false);
           triggerHaptic([12]);
@@ -1369,8 +1401,8 @@
           this.isSpread = !this.isSpread;
           this.resolveTargetPositions();
 
-          this.ballRed.scale = 1.3;
-          this.ballBlue.scale = 1.3;
+          this.ballRed.scale = 1.35;
+          this.ballBlue.scale = 1.35;
 
           audio.playButtonBlip(true);
           triggerHaptic([12]);
@@ -1383,21 +1415,21 @@
         }
 
         spawnBurst(x, color) {
-          for (let i = 0; i < 4; i++) {
+          for (let i = 0; i < 6; i++) {
             this.particles.push(
-              new Particle(x, PLAYER_Y, color, (Math.random() - 0.5) * 60, (Math.random() - 0.5) * 60, 2.5, 0.22)
+              new Particle(x, PLAYER_Y, color, (Math.random() - 0.5) * 80, (Math.random() - 0.5) * 80, 3.0, 0.25)
             );
           }
         }
 
         spawnShatter(y) {
-          for (let i = 0; i < 35; i++) {
+          for (let i = 0; i < 40; i++) {
             const px = Math.random() * VIRTUAL_WIDTH;
             const py = y + (Math.random() - 0.5) * 20;
             const angle = Math.random() * Math.PI * 2;
-            const spd = 120 + Math.random() * 260;
+            const spd = 140 + Math.random() * 280;
             this.particles.push(
-              new Particle(px, py, COLOR_GOLD, Math.cos(angle) * spd, Math.sin(angle) * spd, 3.5, 0.45)
+              new Particle(px, py, COLOR_GOLD, Math.cos(angle) * spd, Math.sin(angle) * spd, 3.5, 0.5)
             );
           }
         }
@@ -1411,36 +1443,41 @@
             this.startGame();
           };
 
-          this.btnStart.addEventListener('touchstart', startTrigger, { passive: false });
           this.btnStart.addEventListener('click', startTrigger);
-
-          this.btnRestart.addEventListener('touchstart', startTrigger, { passive: false });
           this.btnRestart.addEventListener('click', startTrigger);
 
-          // Open Tutorial
-          const openTutorialHandler = (e) => {
-            if (e) {
-              e.preventDefault();
-              e.stopPropagation();
+          // Rewarded Revive via CrazyGames SDK
+          this.btnRevive.addEventListener('click', (e) => {
+            e.stopPropagation();
+            audio.resume();
+
+            if (crazyGamesSDK && crazyGamesSDK.ad) {
+              crazyGamesSDK.ad.requestAd('rewarded', {
+                adStarted: () => {},
+                adError: () => {
+                  this.revivePlayer();
+                },
+                adFinished: () => {
+                  this.revivePlayer();
+                }
+              });
+            } else {
+              this.revivePlayer();
             }
+          });
+
+          this.btnOpenTutorial.addEventListener('click', (e) => {
+            e.stopPropagation();
             audio.resume();
             this.screenTutorial.classList.add('visible');
-          };
-          this.btnOpenTutorial.addEventListener('touchstart', openTutorialHandler, { passive: false });
-          this.btnOpenTutorial.addEventListener('click', openTutorialHandler);
+          });
 
-          // Close Tutorial & Start Game
-          const closeTutorialHandler = (e) => {
-            if (e) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
+          this.btnCloseTutorial.addEventListener('click', (e) => {
+            e.stopPropagation();
             audio.resume();
             this.screenTutorial.classList.remove('visible');
             this.startGame();
-          };
-          this.btnCloseTutorial.addEventListener('touchstart', closeTutorialHandler, { passive: false });
-          this.btnCloseTutorial.addEventListener('click', closeTutorialHandler);
+          });
 
           this.btnSound.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -1454,10 +1491,12 @@
             if (this.gameState === 'PLAYING') {
               this.gameState = 'PAUSED';
               this.iconPause.innerHTML = '<polygon points="5 3 19 12 5 21 5 3"></polygon>';
+              if (crazyGamesSDK && crazyGamesSDK.game) crazyGamesSDK.game.gameplayStop();
             } else if (this.gameState === 'PAUSED') {
               this.gameState = 'PLAYING';
               this.iconPause.innerHTML = '<rect x="6" y="4" width="4" height="16" rx="1"></rect><rect x="14" y="4" width="4" height="16" rx="1"></rect>';
               this.lastTime = performance.now();
+              if (crazyGamesSDK && crazyGamesSDK.game) crazyGamesSDK.game.gameplayStart();
             }
           });
 
@@ -1516,12 +1555,13 @@
           this.score = 0;
           this.currentCheckpoint = 1;
           this.gatesPassed = 0;
+          this.reviveAvailable = true;
 
           this.feverCharge = 0;
           this.isFever = false;
           this.feverTimer = 0;
           this.freezeTime = 0;
-          this.speed = 135;
+          this.speed = 150;
 
           this.isSwapped = false;
           this.isSpread = false;
@@ -1552,6 +1592,27 @@
 
           this.spawnGate(1, 2, -40);
           this.lastTime = performance.now();
+
+          if (crazyGamesSDK && crazyGamesSDK.game) {
+            crazyGamesSDK.game.gameplayStart();
+          }
+        }
+
+        revivePlayer() {
+          this.gameState = 'PLAYING';
+          this.screenGameOver.classList.remove('visible');
+          this.reviveAvailable = false;
+
+          // Clear nearby gates to grant clear runway
+          this.gates = this.gates.filter(g => g.y < 0 || g.y > PLAYER_Y + 150);
+
+          // Activate instant 3s invincibility shield
+          this.isFever = true;
+          this.feverTimer = 3.0;
+          audio.playFeverActivation();
+
+          this.lastTime = performance.now();
+          if (crazyGamesSDK && crazyGamesSDK.game) crazyGamesSDK.game.gameplayStart();
         }
 
         updateCheckpointBackground() {
@@ -1574,6 +1635,10 @@
           if (newCp !== this.currentCheckpoint) {
             this.currentCheckpoint = newCp;
             this.triggerCheckpointBanner(newCp);
+
+            if (crazyGamesSDK && crazyGamesSDK.game) {
+              crazyGamesSDK.game.happytime();
+            }
           }
         }
 
@@ -1599,22 +1664,6 @@
           this.milestoneTimer = setTimeout(() => {
             this.milestoneBanner.classList.remove('show');
           }, 1500);
-
-          for (let i = 0; i < 28; i++) {
-            const angle = Math.random() * Math.PI * 2;
-            const spd = 80 + Math.random() * 220;
-            this.particles.push(
-              new Particle(
-                VIRTUAL_WIDTH / 2,
-                PLAYER_Y,
-                i % 2 === 0 ? COLOR_RED : COLOR_BLUE,
-                Math.cos(angle) * spd,
-                Math.sin(angle) * spd,
-                3.5,
-                0.6
-              )
-            );
-          }
         }
 
         triggerGameOver() {
@@ -1622,6 +1671,10 @@
           this.freezeTime = 0.12;
           audio.playDeath();
           triggerHaptic([50, 30, 80]);
+
+          if (crazyGamesSDK && crazyGamesSDK.game) {
+            crazyGamesSDK.game.gameplayStop();
+          }
 
           this.wrapper.classList.add('shake-active');
           setTimeout(() => this.wrapper.classList.remove('shake-active'), 250);
@@ -1650,6 +1703,9 @@
           this.gameoverBest.textContent = this.highScore;
           this.gameoverGates.textContent = this.gatesPassed;
 
+          // Toggle Rewarded Revive Visibility
+          this.btnRevive.style.display = this.reviveAvailable ? 'flex' : 'none';
+
           setTimeout(() => {
             this.screenGameOver.classList.add('visible');
             this.milestoneBanner.classList.remove('show');
@@ -1662,14 +1718,9 @@
           const state3 = { r: 2, b: 1 };
           const state4 = { r: 3, b: 0 };
 
-          let pool;
-          if (this.score <= 7) {
-            pool = [state1, state2, state3];
-          } else {
-            pool = [state1, state2, state3, state4];
-          }
-
+          let pool = this.score <= 7 ? [state1, state2, state3] : [state1, state2, state3, state4];
           let choice;
+
           if (forceRed !== null && forceBlue !== null) {
             choice = { r: forceRed, b: forceBlue };
           } else {
@@ -1678,12 +1729,10 @@
           }
 
           this.lastGateConfig = choice;
-          const gate = new LaserGate(customY, choice.r, choice.b);
-          this.gates.push(gate);
+          this.gates.push(new LaserGate(customY, choice.r, choice.b));
 
           this.distanceSinceLastGate = 0;
-          const spacingCurve = 270 + 110 * Math.exp(-0.045 * this.score);
-          this.nextGateDistance = spacingCurve;
+          this.nextGateDistance = 270 + 110 * Math.exp(-0.045 * this.score);
         }
 
         updateHUD() {
@@ -1700,13 +1749,9 @@
             this.feverFill.style.width = Math.min(100, this.feverCharge) + '%';
             this.feverLabel.textContent = `FEVER CHARGE: ${Math.round(this.feverCharge)}%`;
 
-            if (this.currentCheckpoint === 1) {
-              this.hudCheckpointTag.textContent = 'CP 1: INTRO';
-            } else if (this.currentCheckpoint === 2) {
-              this.hudCheckpointTag.textContent = 'CP 2: COMBO';
-            } else {
-              this.hudCheckpointTag.textContent = 'CP 3: HYPER';
-            }
+            if (this.currentCheckpoint === 1) this.hudCheckpointTag.textContent = 'CP 1: INTRO';
+            else if (this.currentCheckpoint === 2) this.hudCheckpointTag.textContent = 'CP 2: COMBO';
+            else this.hudCheckpointTag.textContent = 'CP 3: HYPER';
           }
         }
 
@@ -1731,7 +1776,7 @@
             this.updateHUD();
           }
 
-          this.speed = 135 + (180 * (1 - Math.exp(-0.035 * this.score)));
+          this.speed = 145 + (185 * (1 - Math.exp(-0.035 * this.score)));
           this.gridOffset = (this.gridOffset + this.speed * dt) % 40;
 
           const lerpFactor = 1 - Math.exp(-dt * 45);
@@ -1754,71 +1799,71 @@
             this.spawnGate();
           }
 
-          const VERTICAL_GRACE = 16;
-          const HORIZONTAL_TOLERANCE = 38;
+          // ROBUST CONTINUOUS COLLISION DETECTION (CCD)
+          const HORIZONTAL_TOLERANCE = 42;
 
           for (let i = this.gates.length - 1; i >= 0; i--) {
             const gate = this.gates[i];
+            const prevY = gate.y;
             gate.update(dt, this.speed);
+            const currY = gate.y;
 
-            const gateTop = gate.y;
-            const gateBottom = gate.y + gate.height;
-            const gateCenterY = gate.y + gate.height / 2;
-
+            // Check if player plane crossed the gate during this frame interval
             if (!gate.passed && !gate.shattered && !gate.failed) {
-              if (gateBottom >= PLAYER_Y - BALL_RADIUS - VERTICAL_GRACE && gateTop <= PLAYER_Y + BALL_RADIUS + VERTICAL_GRACE) {
-                const targetRedX = LANE_CENTERS[gate.laneRed];
-                const targetBlueX = LANE_CENTERS[gate.laneBlue];
+              const prevCenter = prevY + gate.height / 2;
+              const currCenter = currY + gate.height / 2;
 
-                if (gateCenterY >= PLAYER_Y) {
-                  if (this.isFever) {
+              if (prevCenter <= PLAYER_Y && currCenter >= PLAYER_Y) {
+                if (this.isFever) {
+                  gate.passed = true;
+                  gate.shattered = true;
+                  this.gatesPassed++;
+                  this.score += 2;
+
+                  this.spawnShatter(gate.y);
+                  audio.playShatter();
+                  triggerHaptic([20]);
+
+                  this.wrapper.classList.add('shake-active');
+                  setTimeout(() => this.wrapper.classList.remove('shake-active'), 180);
+
+                  this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'SMASHED! +2', COLOR_GOLD));
+                  this.checkCheckpointTransition(this.score);
+                  this.updateHUD();
+                } else {
+                  const targetRedX = LANE_CENTERS[gate.laneRed];
+                  const targetBlueX = LANE_CENTERS[gate.laneBlue];
+
+                  const matchRed = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE;
+                  const matchBlue = Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
+
+                  if (matchRed && matchBlue) {
                     gate.passed = true;
-                    gate.shattered = true;
                     this.gatesPassed++;
-                    this.score += 2;
+                    this.score += 1;
 
-                    this.spawnShatter(gate.y);
-                    audio.playShatter();
-                    triggerHaptic([20]);
+                    this.feverCharge += (100 / 6);
+                    if (this.feverCharge >= 99.9) {
+                      this.isFever = true;
+                      this.feverCharge = 100;
+                      this.feverTimer = this.feverDuration;
+                      audio.playFeverActivation();
+                      this.hudScore.classList.add('fever');
+                      this.feverFill.classList.add('active');
+                      this.feverLabel.classList.add('active');
+                      this.updateCheckpointBackground();
+                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'INVINCIBLE FEVER!', COLOR_GOLD));
+                    }
 
-                    this.wrapper.classList.add('shake-active');
-                    setTimeout(() => this.wrapper.classList.remove('shake-active'), 180);
-
-                    this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'SMASHED! +2', COLOR_GOLD));
+                    this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'CLEARED!', '#ffffff'));
+                    audio.playGatePass(this.score, false);
+                    triggerHaptic([12]);
                     this.checkCheckpointTransition(this.score);
                     this.updateHUD();
                   } else {
-                    const matchRed = Math.abs(this.ballRed.x - targetRedX) <= HORIZONTAL_TOLERANCE;
-                    const matchBlue = Math.abs(this.ballBlue.x - targetBlueX) <= HORIZONTAL_TOLERANCE;
-
-                    if (matchRed && matchBlue) {
-                      gate.passed = true;
-                      this.gatesPassed++;
-                      this.score += 1;
-
-                      this.feverCharge += (100 / 6);
-                      if (this.feverCharge >= 99.9) {
-                        this.isFever = true;
-                        this.feverCharge = 100;
-                        this.feverTimer = this.feverDuration;
-                        audio.playFeverActivation();
-                        this.hudScore.classList.add('fever');
-                        this.feverFill.classList.add('active');
-                        this.feverLabel.classList.add('active');
-                        this.updateCheckpointBackground();
-                        this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 45, 'INVINCIBLE FEVER!', COLOR_GOLD));
-                      }
-
-                      this.floatingTexts.push(new FloatingText(VIRTUAL_WIDTH / 2, PLAYER_Y - 24, 'CLEARED!', '#ffffff'));
-                      audio.playGatePass(this.score, false);
-                      triggerHaptic([12]);
-                      this.checkCheckpointTransition(this.score);
-                      this.updateHUD();
-                    } else {
-                      gate.failed = true;
-                      this.triggerGameOver();
-                      return;
-                    }
+                    gate.failed = true;
+                    this.triggerGameOver();
+                    return;
                   }
                 }
               }
@@ -1830,49 +1875,33 @@
           }
 
           for (let i = this.floatingTexts.length - 1; i >= 0; i--) {
-            if (!this.floatingTexts[i].update(dt)) {
-              this.floatingTexts.splice(i, 1);
-            }
+            if (!this.floatingTexts[i].update(dt)) this.floatingTexts.splice(i, 1);
           }
 
           for (let i = this.particles.length - 1; i >= 0; i--) {
-            if (!this.particles[i].update(dt)) {
-              this.particles.splice(i, 1);
-            }
+            if (!this.particles[i].update(dt)) this.particles.splice(i, 1);
           }
         }
 
         draw() {
           const ctx = this.ctx;
           ctx.save();
-
           ctx.clearRect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
           this.drawCyberTracks(ctx);
 
-          for (const gate of this.gates) {
-            gate.draw(ctx);
-          }
-
+          for (const gate of this.gates) gate.draw(ctx);
           this.drawLaneMarkers(ctx);
-
-          for (const p of this.particles) {
-            p.draw(ctx);
-          }
-
-          for (const ft of this.floatingTexts) {
-            ft.draw(ctx);
-          }
+          for (const p of this.particles) p.draw(ctx);
+          for (const ft of this.floatingTexts) ft.draw(ctx);
 
           this.drawPlayerBalls(ctx);
-
           ctx.restore();
         }
 
         drawCyberTracks(ctx) {
           ctx.save();
-
-          ctx.strokeStyle = this.isFever ? 'rgba(255, 204, 0, 0.12)' : 'rgba(255, 255, 255, 0.025)';
+          ctx.strokeStyle = this.isFever ? 'rgba(255, 204, 0, 0.14)' : 'rgba(255, 255, 255, 0.03)';
           ctx.lineWidth = 1;
           for (let y = this.gridOffset; y < VIRTUAL_HEIGHT; y += 40) {
             ctx.beginPath();
@@ -1883,20 +1912,19 @@
 
           for (let i = 1; i < NUM_LANES; i++) {
             const x = i * LANE_WIDTH;
-            ctx.strokeStyle = this.isFever ? 'rgba(255, 204, 0, 0.2)' : ((i === 2) ? 'rgba(255, 255, 255, 0.12)' : 'rgba(255, 255, 255, 0.04)');
+            ctx.strokeStyle = this.isFever ? 'rgba(255, 204, 0, 0.22)' : ((i === 2) ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.05)');
             ctx.lineWidth = (i === 2) ? 1.5 : 1;
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, VIRTUAL_HEIGHT);
             ctx.stroke();
           }
-
           ctx.restore();
         }
 
         drawLaneMarkers(ctx) {
           ctx.save();
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.06)';
           ctx.lineWidth = 1;
           ctx.setLineDash([4, 6]);
           ctx.beginPath();
@@ -1921,11 +1949,11 @@
             const radius = BALL_RADIUS * ball.scale;
 
             ctx.save();
-
             ctx.strokeStyle = this.isFever ? COLOR_GOLD : ball.color;
             ctx.shadowColor = this.isFever ? COLOR_GOLD_GLOW : ball.glow;
-            ctx.shadowBlur = this.isFever ? 24 : 18;
+            ctx.shadowBlur = this.isFever ? 26 : 18;
             ctx.lineWidth = this.isFever ? 3.5 : 2.5;
+
             ctx.beginPath();
             ctx.arc(x, y, radius + 3.5, 0, Math.PI * 2);
             ctx.stroke();
@@ -1939,7 +1967,6 @@
             ctx.beginPath();
             ctx.arc(x - 3.5, y - 3.5, 3.5, 0, Math.PI * 2);
             ctx.fill();
-
             ctx.restore();
           };
 
