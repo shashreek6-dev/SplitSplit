@@ -715,12 +715,12 @@ export default function App() {
       return { group, shardGroup, laneRed: redLane, laneBlue: blueLane, z, passed: false, shattered: false };
     };
 
-    // --- 6. GAME CONTROL LOOP & THEME CYCLING ---
+    // --- 6. GAME CONTROL LOOP & SMOOTH PACING CURVE ---
     let localScore = 0;
     let localGatesCleared = 0;
     let localFever = 0;
     let feverDuration = 5.0;
-    let speed = 14;
+    let speed = 13; // Comfortable starting pace
     let isSwapped = false;
     let isSpread = false;
     let currentThemeIdx = 0;
@@ -852,7 +852,7 @@ export default function App() {
 
         localScore = 0;
         localGatesCleared = 0;
-        speed = 14;
+        speed = 13;
         isSwapped = false;
         isSpread = false;
         currentThemeIdx = 0;
@@ -869,7 +869,7 @@ export default function App() {
         setTimeout(() => setTutorialHint(null), 4000);
 
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 36);
+          spawnNextGate(-i * 38);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1123,12 +1123,13 @@ export default function App() {
             scene.remove(gate.group);
             gates.splice(i, 1);
             const furthestZ = gates.reduce((min, g) => Math.min(min, g.z), 0);
-            const spacing = Math.max(26, 36 - localScore * 0.25);
+            const spacing = Math.max(30, 40 - localScore * 0.15);
             spawnNextGate(furthestZ - spacing);
           }
         }
 
-        speed = 14 + Math.min(28, localScore * 0.75);
+        // SMOOTH, GENTLE ACCELERATION CURVE: Starts at 13, scales gradually up to 25 max
+        speed = 13 + Math.min(12, localScore * 0.28);
       }
 
       renderer.render(scene, camera);
