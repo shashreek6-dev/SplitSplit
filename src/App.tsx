@@ -130,7 +130,7 @@ function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: n
 export default function App() {
   const mountRef = useRef<HTMLDivElement>(null);
 
-  // React State Machine
+  // React State Machine — Start immediately on 'START' menu
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(Number(localStorage.getItem('split_best') || 0));
   const [shards, setShards] = useState(Number(localStorage.getItem('split_shards') || 0));
@@ -141,21 +141,24 @@ export default function App() {
   const [tutorialHint, setTutorialHint] = useState<string | null>(null);
   const [milestone, setMilestone] = useState<{ title: string; sub: string } | null>(null);
   
-  const [gameState, setGameState] = useState<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
+  const [gameState, setGameState] = useState<'START' | 'PLAYING' | 'GAMEOVER'>('START');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
 
   const [skins, setSkins] = useState<CosmeticItem[]>(() => {
-    const saved = localStorage.getItem('split_skins_v2');
-    return saved ? JSON.parse(saved) : COSMETIC_CATALOG;
+    try {
+      const saved = localStorage.getItem('split_skins_v2');
+      return saved ? JSON.parse(saved) : COSMETIC_CATALOG;
+    } catch {
+      return COSMETIC_CATALOG;
+    }
   });
   const [equippedSkinId, setEquippedSkinId] = useState(
     localStorage.getItem('split_equipped_skin_v2') || 'neon_classic'
   );
 
-  const gameStateRef = useRef<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
+  const gameStateRef = useRef<'START' | 'PLAYING' | 'GAMEOVER'>('START');
   const isFeverRef = useRef<boolean>(false);
-  const introTimerRef = useRef<number>(0);
 
   const engineRef = useRef<{
     triggerSwap: () => void;
@@ -449,14 +452,14 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS UNIFORM DESKTOP SCENE SETUP ---
+    // --- 2. THREE.JS SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080a1a');
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
     const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 16.0, 45.0);
-    camera.lookAt(0, 1.0, -18.0);
+    camera.position.set(0, 3.2, 7.8);
+    camera.lookAt(0, 1.2, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -715,7 +718,7 @@ export default function App() {
       return { group, shardGroup, laneRed: redLane, laneBlue: blueLane, z, passed: false, shattered: false };
     };
 
-    // --- 6. GAME CONTROL LOOP & SMOOTH PACING CURVE ---
+    // --- 6. GAME CONTROL LOOP ---
     let localScore = 0;
     let localGatesCleared = 0;
     let localFever = 0;
@@ -748,13 +751,6 @@ export default function App() {
         (c.material as THREE.MeshStandardMaterial).emissive.setHex(th.curb);
       });
     };
-
-    introTimerRef.current = window.setTimeout(() => {
-      if (gameStateRef.current === 'INTRO') {
-        gameStateRef.current = 'START';
-        setGameState('START');
-      }
-    }, 1400);
 
     const triggerFeverOverdrive = () => {
       isFeverRef.current = true;
@@ -875,7 +871,7 @@ export default function App() {
         if (window.CrazyGames?.SDK?.game) {
           window.CrazyGames.SDK.game.gameplayStart();
         }
-      }, 350);
+      }, 250);
     };
 
     const goToMainMenu = () => {
@@ -960,13 +956,15 @@ export default function App() {
         }
       }
 
-      if (gameStateRef.current === 'INTRO' || gameStateRef.current === 'START') {
+      if (gameStateRef.current === 'START') {
         camera.position.set(0, 3.2, 7.8);
         camera.lookAt(0, 1.2, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 15 * dt) % 4;
 
         parentCoreRed.rotation.y += dt * 1.5;
         parentCoreBlue.rotation.y += dt * 1.5;
+        redMeshInstance.ring.rotation.x += dt * 2.0;
+        blueMeshInstance.ring.rotation.x += dt * 2.0;
       } else {
         camera.position.set(0, 3.2, 7.8);
         camera.lookAt(0, 1.2, -18.0);
@@ -1128,7 +1126,6 @@ export default function App() {
 
     return () => {
       if (bgmTimer) clearInterval(bgmTimer);
-      if (introTimerRef.current) clearTimeout(introTimerRef.current);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
