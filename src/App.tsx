@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import './index.css';
 
-// --- CRAZYGAMES SDK TYPE DEFINITIONS ---
 declare global {
   interface Window {
     CrazyGames?: {
@@ -1254,7 +1253,7 @@ export default function App() {
         </div>
       )}
 
-      {/* GAMEOVER SCREEN */}
+      {/* GAMEOVER SCREEN (FIXED CARD WRAPPER & VISIBILITY) */}
       {gameState === 'GAMEOVER' && (
         <div className="modal-overlay">
           <div className="cyber-panel-card" style={{ borderColor: 'rgba(255, 42, 109, 0.45)' }}>
