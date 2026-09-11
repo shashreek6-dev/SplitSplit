@@ -500,7 +500,8 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const LANE_CENTERS = [-3.0, -1.0, 1.0, 3.0];
+    const isMobilePortrait = window.innerWidth <= 768;
+    const LANE_CENTERS = isMobilePortrait ? [-1.65, -0.55, 0.55, 1.65] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
