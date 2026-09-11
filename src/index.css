@@ -102,6 +102,7 @@ html, body, #root {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
   pointer-events: auto;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .pill-card .gold {
@@ -183,7 +184,7 @@ html, body, #root {
 .touch-row {
   display: flex;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
   max-width: 580px;
   margin: 0 auto;
@@ -203,6 +204,7 @@ html, body, #root {
   cursor: pointer;
   touch-action: manipulation;
   transition: transform 0.06s ease;
+  padding: 0 8px;
 }
 
 .neon-btn:active {
@@ -220,17 +222,19 @@ html, body, #root {
 }
 
 .btn-label {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 900;
-  letter-spacing: 2px;
+  letter-spacing: 1px;
   color: #ffffff;
+  white-space: nowrap;
 }
 
 .btn-sub {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 800;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
 }
 
 .hud-btn-icon {
@@ -587,4 +591,71 @@ html, body, #root {
   background: #00e5ff;
   color: #030408;
   font-weight: 900;
+}
+
+/* ==========================================================================
+   STRICT MOBILE PORTRAIT FIXES (For iOS Safari & Android Chrome)
+   ========================================================================== */
+@media (max-width: 768px) {
+  .hud-layer {
+    padding: max(env(safe-area-inset-top), 24px) 12px calc(env(safe-area-inset-bottom, 16px) + 20px) 12px !important;
+    justify-content: space-between !important;
+  }
+
+  .pill-card {
+    padding: 6px 12px;
+    font-size: 11px;
+    border-radius: 12px;
+  }
+
+  .hud-btn-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    border-radius: 10px;
+  }
+
+  .score-number {
+    font-size: 42px !important;
+  }
+
+  .fever-bar-wrap {
+    width: 180px;
+    margin-top: 2px;
+  }
+
+  .fever-track {
+    height: 6px;
+  }
+
+  .fever-label {
+    font-size: 8px;
+  }
+
+  /* Securely lift touch buttons above mobile home indicators and browser bars */
+  .touch-row {
+    max-width: 100% !important;
+    gap: 10px !important;
+    margin-bottom: calc(env(safe-area-inset-bottom, 12px) + 12px) !important;
+  }
+
+  .neon-btn {
+    height: 60px !important;
+    border-radius: 16px !important;
+  }
+
+  .btn-label {
+    font-size: 11.5px !important;
+    letter-spacing: 0.8px !important;
+  }
+
+  .btn-sub {
+    font-size: 8px !important;
+  }
+
+  .onboarding-hint-banner {
+    top: 75px !important;
+    font-size: 9.5px !important;
+    padding: 5px 14px !important;
+  }
 }
