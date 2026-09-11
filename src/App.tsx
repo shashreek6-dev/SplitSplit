@@ -449,14 +449,19 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS UNIFORM DESKTOP SCENE SETUP ---
+    // --- 2. THREE.JS RESPONSIVE AUTO-SCALING SETUP ---
+    const isMobilePortrait = window.innerWidth <= 768;
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080a1a');
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 16.0, 45.0);
-    camera.lookAt(0, 1.0, -18.0);
+    // Dynamic FOV scaling: Auto-adjusts so mobile portrait viewports fit the exact desktop track width
+    const baseFov = 65;
+    const computedFov = isMobilePortrait ? Math.max(baseFov, baseFov * (window.innerHeight / window.innerWidth) * 0.78) : baseFov;
+
+    const camera = new THREE.PerspectiveCamera(computedFov, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, isMobilePortrait ? 13.5 : 16.0, isMobilePortrait ? 32.0 : 45.0);
+    camera.lookAt(0, 0.9, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1034,7 +1039,7 @@ export default function App() {
             restoreNormalAesthetics();
           }
         } else {
-          camera.fov += (65 - camera.fov) * (1 - Math.exp(-8 * dt));
+          camera.fov += (computedFov - camera.fov) * (1 - Math.exp(-8 * dt));
         }
         camera.updateProjectionMatrix();
 
@@ -1383,7 +1388,7 @@ export default function App() {
               })}
             </div>
 
-            <button className="cyber-secondary-btn" style={{ width: '100%', marginTop: 6 }} onClick={() => setIsShopOpen(false)}>
+            <button className="cyber-secondary-btn" style={{ width: '100%', marginTop: 6, padding: '12px 20px', fontSize: '13px' }} onClick={() => setIsShopOpen(false)}>
               RETURN TO ARENA
             </button>
           </div>
