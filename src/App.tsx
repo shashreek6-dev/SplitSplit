@@ -632,7 +632,7 @@ export default function App() {
       }
     };
 
-    // --- 5. GATES ARCHITECTURE ---
+    // --- 5. GATES ARCHITECTURE (RESPONSIVE WIDTH FOR MOBILE) ---
     interface Gate3D {
       group: THREE.Group;
       shardGroup: THREE.Group;
@@ -648,19 +648,21 @@ export default function App() {
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
 
+      const frameWidth = isMobilePortrait ? 6.8 : 10.6;
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
-      const topBar = new THREE.Mesh(new THREE.BoxGeometry(10.6, 0.35, 0.45), frameMat);
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, 0.45), frameMat);
       topBar.position.y = 2.4;
       group.add(topBar);
 
-      [-5.25, 5.25].forEach(x => {
+      const curbEdge = frameWidth / 2;
+      [-curbEdge, curbEdge].forEach(x => {
         const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.5, 0.45), frameMat);
         pillar.position.set(x, 1.25, 0);
         group.add(pillar);
       });
 
       const shield = new THREE.Mesh(
-        new THREE.BoxGeometry(10.4, 2.1, 0.05),
+        new THREE.BoxGeometry(frameWidth - 0.2, 2.1, 0.05),
         new THREE.MeshStandardMaterial({ color: 0x050713, roughness: 0.9, transparent: true, opacity: 0.82 })
       );
       shield.position.y = 1.15;
@@ -679,18 +681,20 @@ export default function App() {
           roughness: 0.2,
         });
 
-        [-0.85, 0.85].forEach(px => {
+        const portalWidth = isMobilePortrait ? 0.95 : 1.58;
+
+        [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.25), pMat);
           post.position.set(px, 1.15, 0);
           pGroup.add(post);
         });
 
-        const header = new THREE.Mesh(new THREE.BoxGeometry(1.82, 0.12, 0.25), pMat);
+        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.24, 0.12, 0.25), pMat);
         header.position.set(0, 2.2, 0);
         pGroup.add(header);
 
         const curtain = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.58, 2.05),
+          new THREE.PlaneGeometry(portalWidth, 2.05),
           new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.24, side: THREE.DoubleSide })
         );
         curtain.position.set(0, 1.15, 0);
