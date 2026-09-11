@@ -501,7 +501,7 @@ export default function App() {
     });
 
     const isMobilePortrait = window.innerWidth <= 768;
-    const LANE_CENTERS = isMobilePortrait ? [-1.65, -0.55, 0.55, 1.65] : [-3.0, -1.0, 1.0, 3.0];
+    const LANE_CENTERS = isMobilePortrait ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
