@@ -7,8 +7,8 @@
 }
 
 html, body, #root {
-  width: 100% !important;
-  height: 100% !important;
+  width: 100vw !important;
+  height: 100vh !important;
   overflow: hidden !important;
   background-color: #030408 !important;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -45,7 +45,6 @@ html, body, #root {
   display: block !important;
 }
 
-/* Screen Flash Overlay on Fever Trigger */
 #fever-flash-fx {
   position: absolute;
   inset: 0;
@@ -60,9 +59,6 @@ html, body, #root {
   opacity: 1;
 }
 
-/* ==========================================================================
-   DESKTOP HUD LAYER
-   ========================================================================== */
 .hud-layer {
   position: absolute;
   inset: 0;
@@ -134,7 +130,6 @@ html, body, #root {
   text-shadow: 0 0 35px #ffcc00, 0 0 60px rgba(255, 204, 0, 0.8) !important;
 }
 
-/* Fever Gauge */
 .fever-bar-wrap {
   width: 320px;
   display: flex;
@@ -185,7 +180,6 @@ html, body, #root {
   text-shadow: 0 0 12px #ffcc00;
 }
 
-/* Touch Control Buttons */
 .touch-row {
   display: flex;
   justify-content: space-between;
@@ -239,7 +233,6 @@ html, body, #root {
   color: rgba(255, 255, 255, 0.65);
 }
 
-/* Sound Toggle Button */
 .hud-btn-icon {
   width: 42px;
   height: 42px;
@@ -256,7 +249,6 @@ html, body, #root {
   font-size: 16px;
 }
 
-/* Floating Onboarding Banner */
 .onboarding-hint-banner {
   position: absolute;
   top: 100px;
@@ -312,9 +304,6 @@ html, body, #root {
   margin-top: 4px;
 }
 
-/* ==========================================================================
-   MODAL OVERLAYS
-   ========================================================================== */
 .modal-overlay {
   position: fixed !important;
   inset: 0 !important;
@@ -330,13 +319,6 @@ html, body, #root {
   padding: 24px;
   z-index: 9999 !important;
   pointer-events: auto !important;
-  transition: opacity 0.35s ease, transform 0.35s ease;
-}
-
-.modal-overlay.transitioning-out {
-  opacity: 0 !important;
-  transform: scale(0.94) !important;
-  pointer-events: none !important;
 }
 
 .cyber-panel-card {
@@ -350,13 +332,6 @@ html, body, #root {
   flex-direction: column;
   align-items: center;
   box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), 0 0 40px rgba(255, 42, 109, 0.25);
-  position: relative;
-  animation: card-cinematic-intro 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes card-cinematic-intro {
-  0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .brand-hero-title {
@@ -395,7 +370,6 @@ html, body, #root {
   font-weight: 800;
   letter-spacing: 1.5px;
   margin-bottom: 24px;
-  box-shadow: 0 0 20px rgba(255, 204, 0, 0.2);
 }
 
 .controls-hint-row {
@@ -436,11 +410,6 @@ html, body, #root {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  transition: transform 0.1s ease;
-}
-
-.cyber-play-btn:active {
-  transform: scale(0.95);
 }
 
 .cyber-secondary-btn {
@@ -456,288 +425,46 @@ html, body, #root {
   text-transform: uppercase;
   cursor: pointer;
   margin-top: 10px;
-  transition: background 0.15s ease, transform 0.1s ease;
-}
-
-.cyber-secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.cyber-secondary-btn:active {
-  transform: scale(0.95);
-}
-
-/* CRASHED STATS TABLE */
-.stats-grid-card {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin: 18px 0 22px 0;
-}
-
-.stat-tile {
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-.stat-tile-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 1.4px;
-  color: rgba(255, 255, 255, 0.55);
-  text-transform: uppercase;
-}
-
-.stat-tile-val {
-  font-size: 26px;
-  font-weight: 900;
-  font-style: italic;
-  color: #ffffff;
-}
-
-.stat-tile-val.gold {
-  color: #ffcc00;
-  text-shadow: 0 0 14px rgba(255, 204, 0, 0.7);
-}
-
-.stat-tile-val.cyan {
-  color: #00e5ff;
-  text-shadow: 0 0 14px rgba(0, 229, 255, 0.7);
-}
-
-.btn-revive-glow {
-  width: 100%;
-  background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
-  border: 2px solid #ffe494;
-  border-radius: 9999px;
-  padding: 15px 22px;
-  color: #030408;
-  font-size: 15px;
-  font-weight: 900;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  cursor: pointer;
-  box-shadow: 0 0 30px rgba(255, 183, 3, 0.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* SHOP LOCKER */
-.shop-card {
-  width: 100%;
-  max-width: 580px;
-  max-height: 88vh;
-  background: rgba(12, 16, 34, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 26px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95);
-  color: #ffffff;
-  overflow: hidden;
-}
-
-.shop-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  overflow-y: auto;
-  max-height: 54vh;
-  padding-right: 4px;
-}
-
-@media (max-width: 600px) {
-  .shop-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.shop-item-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 2px solid rgba(255, 255, 255, 0.12);
-  border-radius: 20px;
-  padding: 16px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease;
-}
-
-.shop-item-card.equipped {
-  border-color: #00e5ff;
-  background: rgba(0, 229, 255, 0.14);
-}
-
-.shop-item-card.unlocked {
-  border-color: rgba(34, 197, 94, 0.6);
-}
-
-.archetype-preview-container {
-  width: 58px;
-  height: 58px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.archetype-svg-spin {
-  width: 100%;
-  height: 100%;
-}
-
-.shop-item-name {
-  font-size: 13.5px;
-  font-weight: 900;
-  color: #ffffff;
-  text-align: center;
-}
-
-.shop-item-type {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 1.2px;
-  color: rgba(255, 255, 255, 0.55);
-  text-transform: uppercase;
-}
-
-.shop-item-btn {
-  font-size: 11.5px;
-  font-weight: 800;
-  padding: 7px 16px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
-}
-
-.shop-item-card.equipped .shop-item-btn {
-  background: #00e5ff;
-  color: #030408;
-  font-weight: 900;
 }
 
 /* ==========================================================================
-   STRICT MOBILE PORTRAIT OVERRIDES (Safe Notch Clearance & Fully Visible Header)
+   STRICT MOBILE VIEWPORT OVERRIDES (Forced Safe Area Padding)
    ========================================================================== */
 @media (max-width: 768px) {
   .hud-layer {
-    padding: max(env(safe-area-inset-top), 32px) 12px calc(env(safe-area-inset-bottom, 12px) + 16px) 12px !important;
-    justify-content: space-between !important;
+    padding: max(env(safe-area-inset-top), 40px) 12px calc(env(safe-area-inset-bottom, 20px) + 10px) 12px !important;
   }
 
   .top-header {
-    margin-top: 6px !important;
-  }
-
-  .pill-card {
-    padding: 5px 10px;
-    font-size: 10.5px;
-    border-radius: 10px;
-  }
-
-  .hud-btn-icon {
-    width: 30px;
-    height: 30px;
-    font-size: 12px;
-    border-radius: 9px;
+    margin-top: 4px !important;
   }
 
   .score-number {
-    font-size: 32px !important;
+    font-size: 34px !important;
   }
 
   .fever-bar-wrap {
-    width: 150px;
-    margin-top: 1px;
-  }
-
-  .fever-track {
-    height: 5px;
-  }
-
-  .fever-label {
-    font-size: 7.5px;
+    width: 140px;
   }
 
   .touch-row {
     max-width: 100% !important;
-    gap: 8px !important;
-    position: relative !important;
-    bottom: 0px !important;
-    margin-bottom: 4px !important;
+    gap: 10px !important;
+    padding-bottom: 25px !important;
   }
 
   .neon-btn {
-    height: 52px !important;
+    height: 54px !important;
     border-radius: 14px !important;
   }
 
   .btn-label {
     font-size: 11px !important;
-    letter-spacing: 0.8px !important;
-  }
-
-  .btn-sub {
-    font-size: 7.5px !important;
   }
 
   .onboarding-hint-banner {
-    top: 96px !important;
+    top: 92px !important;
     font-size: 8.5px !important;
     padding: 3px 10px !important;
-  }
-
-  .cyber-panel-card {
-    max-width: 92vw !important;
-    padding: 18px 14px !important;
-  }
-
-  .brand-hero-title {
-    font-size: 24px !important;
-  }
-
-  .brand-hero-sub {
-    font-size: 8px !important;
-    margin-bottom: 10px !important;
-  }
-
-  .hero-badge-pill {
-    margin-bottom: 12px !important;
-    padding: 4px 10px !important;
-    font-size: 9.5px !important;
-  }
-
-  .cyber-play-btn {
-    padding: 10px 16px !important;
-    font-size: 13.5px !important;
-  }
-
-  .cyber-secondary-btn {
-    padding: 9px 16px !important;
-    font-size: 11px !important;
-  }
-
-  .shop-card {
-    max-width: 94vw !important;
-    max-height: 80vh !important;
-    padding: 12px !important;
-  }
-
-  .shop-grid {
-    max-height: 42vh !important;
   }
 }
