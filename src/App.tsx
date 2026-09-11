@@ -455,9 +455,9 @@ export default function App() {
     scene.background = new THREE.Color('#080a1a');
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
-    const camera = new THREE.PerspectiveCamera(isMobilePortrait ? 72 : 65, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, isMobilePortrait ? 14.0 : 16.0, isMobilePortrait ? 36.0 : 45.0);
-    camera.lookAt(0, 1.0, -18.0);
+    const camera = new THREE.PerspectiveCamera(isMobilePortrait ? 60 : 65, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, isMobilePortrait ? 11.5 : 16.0, isMobilePortrait ? 28.0 : 45.0);
+    camera.lookAt(0, 0.8, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -477,8 +477,8 @@ export default function App() {
     sunMesh.position.set(0, 14, -130);
     scene.add(sunMesh);
 
-    const trackWidth = isMobilePortrait ? 7.2 : 10.5;
-    const curbOffset = isMobilePortrait ? 3.6 : 5.25;
+    const trackWidth = isMobilePortrait ? 6.2 : 10.5;
+    const curbOffset = isMobilePortrait ? 3.1 : 5.25;
 
     const trackFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(trackWidth, 260),
@@ -503,10 +503,10 @@ export default function App() {
       curbs.push(curb);
     });
 
-    // Responsive Lane Centers: Tighter on mobile so balls stay fully inside screen bounds
-    const LANE_CENTERS = isMobilePortrait ? [-1.7, -0.55, 0.55, 1.7] : [-3.0, -1.0, 1.0, 3.0];
+    // Compressed mobile lane centers so balls stay safely within screen width
+    const LANE_CENTERS = isMobilePortrait ? [-1.35, -0.45, 0.45, 1.35] : [-3.0, -1.0, 1.0, 3.0];
 
-    const innerLines = isMobilePortrait ? [-1.1, 0.0, 1.1] : [-2.0, 0.0, 2.0];
+    const innerLines = isMobilePortrait ? [-0.9, 0.0, 0.9] : [-2.0, 0.0, 2.0];
     innerLines.forEach((lx, idx) => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(lx, 0.03, 10),
@@ -683,18 +683,18 @@ export default function App() {
           roughness: 0.2,
         });
 
-        [-0.55, 0.55].forEach(px => {
-          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.1, 0.25), pMat);
+        [-0.42, 0.42].forEach(px => {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.09, 2.1, 0.25), pMat);
           post.position.set(px, 1.15, 0);
           pGroup.add(post);
         });
 
-        const header = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.12, 0.25), pMat);
+        const header = new THREE.Mesh(new THREE.BoxGeometry(0.92, 0.12, 0.25), pMat);
         header.position.set(0, 2.2, 0);
         pGroup.add(header);
 
         const curtain = new THREE.Mesh(
-          new THREE.PlaneGeometry(1.0, 2.05),
+          new THREE.PlaneGeometry(0.75, 2.05),
           new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.24, side: THREE.DoubleSide })
         );
         curtain.position.set(0, 1.15, 0);
@@ -968,9 +968,9 @@ export default function App() {
 
       if (gameStateRef.current === 'INTRO') {
         camera.position.x += (0 - camera.position.x) * (1 - Math.exp(-5 * dt));
-        camera.position.y += ((isMobilePortrait ? 12.5 : 3.2) - camera.position.y) * (1 - Math.exp(-5 * dt));
-        camera.position.z += ((isMobilePortrait ? 6.5 : 7.8) - camera.position.z) * (1 - Math.exp(-4 * dt));
-        camera.lookAt(0, 1.2, -18.0);
+        camera.position.y += ((isMobilePortrait ? 11.5 : 3.2) - camera.position.y) * (1 - Math.exp(-5 * dt));
+        camera.position.z += ((isMobilePortrait ? 5.8 : 7.8) - camera.position.z) * (1 - Math.exp(-4 * dt));
+        camera.lookAt(0, 0.8, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 35 * dt) % 4;
 
         parentCoreRed.rotation.y += dt * 2.5;
@@ -978,8 +978,8 @@ export default function App() {
       } else if (gameStateRef.current !== 'PLAYING') {
         const t = time * 0.0006;
         const targetX = Math.sin(t) * 1.5;
-        const targetY = (isMobilePortrait ? 12.5 : 3.2) + Math.cos(t * 0.8) * 0.3;
-        const targetZ = (isMobilePortrait ? 6.5 : 7.8) + Math.cos(t) * 0.6;
+        const targetY = (isMobilePortrait ? 11.5 : 3.2) + Math.cos(t * 0.8) * 0.3;
+        const targetZ = (isMobilePortrait ? 5.8 : 7.8) + Math.cos(t) * 0.6;
 
         camera.position.x += (targetX - camera.position.x) * (1 - Math.exp(-6 * dt));
         camera.position.y += (targetY - camera.position.y) * (1 - Math.exp(-6 * dt));
@@ -991,8 +991,8 @@ export default function App() {
         redMeshInstance.ring.rotation.x += dt * 2.0;
         blueMeshInstance.ring.rotation.x += dt * 2.0;
       } else {
-        camera.position.set(0, isMobilePortrait ? 14.0 : 3.2, isMobilePortrait ? 6.8 : 7.8);
-        camera.lookAt(0, 1.2, -18.0);
+        camera.position.set(0, isMobilePortrait ? 11.5 : 3.2, isMobilePortrait ? 5.8 : 7.8);
+        camera.lookAt(0, 0.8, -18.0);
 
         gridHelper.position.z = (gridHelper.position.z + speed * dt) % 4;
 
@@ -1033,14 +1033,14 @@ export default function App() {
         trailGeo.attributes.position.needsUpdate = true;
 
         if (isFeverRef.current) {
-          camera.fov += ((isMobilePortrait ? 78 : 82) - camera.fov) * (1 - Math.exp(-8 * dt));
+          camera.fov += ((isMobilePortrait ? 68 : 82) - camera.fov) * (1 - Math.exp(-8 * dt));
           feverDuration -= dt;
           setFeverPct(Math.max(0, (feverDuration / 5.0) * 100));
           if (feverDuration <= 0) {
             restoreNormalAesthetics();
           }
         } else {
-          camera.fov += ((isMobilePortrait ? 72 : 65) - camera.fov) * (1 - Math.exp(-8 * dt));
+          camera.fov += ((isMobilePortrait ? 60 : 65) - camera.fov) * (1 - Math.exp(-8 * dt));
         }
         camera.updateProjectionMatrix();
 
