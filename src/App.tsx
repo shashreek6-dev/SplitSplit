@@ -130,7 +130,6 @@ function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: n
 export default function App() {
   const mountRef = useRef<HTMLDivElement>(null);
 
-  // React State Machine — Start immediately on 'START' menu
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(Number(localStorage.getItem('split_best') || 0));
   const [shards, setShards] = useState(Number(localStorage.getItem('split_shards') || 0));
@@ -173,7 +172,6 @@ export default function App() {
   useEffect(() => {
     if (!mountRef.current) return;
 
-    // --- 1. PROCEDURAL AUDIO SYNTHESIZER ---
     let audioCtx: AudioContext | null = null;
     let musicBus: GainNode | null = null;
     let sfxBus: GainNode | null = null;
