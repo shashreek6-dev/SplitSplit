@@ -449,14 +449,14 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS SCENE SETUP ---
+    // --- 2. THREE.JS SCENE SETUP (IMMERSIVE CLOSE-UP ARCADE CAMERA) ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080a1a');
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
-    const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 16.0, 45.0);
-    camera.lookAt(0, 1.0, -18.0);
+    const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 3.2, 7.8);
+    camera.lookAt(0, 1.2, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -954,8 +954,8 @@ export default function App() {
       }
 
       if (gameStateRef.current === 'START') {
-        camera.position.set(0, 16.0, 45.0);
-        camera.lookAt(0, 1.0, -18.0);
+        camera.position.set(0, 3.2, 7.8);
+        camera.lookAt(0, 1.2, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 15 * dt) % 4;
 
         parentCoreRed.rotation.y += dt * 1.5;
@@ -963,8 +963,8 @@ export default function App() {
         redMeshInstance.ring.rotation.x += dt * 2.0;
         blueMeshInstance.ring.rotation.x += dt * 2.0;
       } else {
-        camera.position.set(0, 16.0, 45.0);
-        camera.lookAt(0, 1.0, -18.0);
+        camera.position.set(0, 3.2, 7.8);
+        camera.lookAt(0, 1.2, -18.0);
 
         gridHelper.position.z = (gridHelper.position.z + speed * dt) % 4;
 
@@ -1012,7 +1012,7 @@ export default function App() {
             restoreNormalAesthetics();
           }
         } else {
-          camera.fov += (65 - camera.fov) * (1 - Math.exp(-8 * dt));
+          camera.fov += (72 - camera.fov) * (1 - Math.exp(-8 * dt));
         }
         camera.updateProjectionMatrix();
 
@@ -1253,7 +1253,7 @@ export default function App() {
         </div>
       )}
 
-      {/* GAMEOVER SCREEN (FIXED CARD WRAPPER & VISIBILITY) */}
+      {/* GAMEOVER SCREEN */}
       {gameState === 'GAMEOVER' && (
         <div className="modal-overlay">
           <div className="cyber-panel-card" style={{ borderColor: 'rgba(255, 42, 109, 0.45)' }}>
