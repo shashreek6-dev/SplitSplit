@@ -139,7 +139,7 @@ export default function App() {
   const [tutorialHint, setTutorialHint] = useState<string | null>(null);
   const [milestone, setMilestone] = useState<{ title: string; sub: string } | null>(null);
   
-  const [gameState, setGameState] = useState<'START' | 'PLAYING' | 'GAMEOVER'>('START');
+  const [gameState, setGameState] = useState<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
 
@@ -155,8 +155,9 @@ export default function App() {
     localStorage.getItem('split_equipped_skin_v2') || 'neon_classic'
   );
 
-  const gameStateRef = useRef<'START' | 'PLAYING' | 'GAMEOVER'>('START');
+  const gameStateRef = useRef<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
   const isFeverRef = useRef<boolean>(false);
+  const introTimerRef = useRef<number>(0);
 
   const engineRef = useRef<{
     triggerSwap: () => void;
@@ -449,13 +450,13 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS SCENE SETUP (IMMERSIVE CLOSE-UP ARCADE CAMERA) ---
+    // --- 2. THREE.JS SCENE SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#080a1a');
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 3.2, 7.8);
+    camera.position.set(0, 24.0, 75.0); // Start further back for cinematic intro fly-in
     camera.lookAt(0, 1.2, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -929,6 +930,14 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
 
+    // Cinematic Intro Fly-in Timer
+    introTimerRef.current = window.setTimeout(() => {
+      if (gameStateRef.current === 'INTRO') {
+        gameStateRef.current = 'START';
+        setGameState('START');
+      }
+    }, 1400);
+
     // --- 7. FRAME-INDEPENDENT RENDER LOOP ---
     let lastTime = performance.now();
     let animId: number;
@@ -953,7 +962,16 @@ export default function App() {
         }
       }
 
-      if (gameStateRef.current === 'START') {
+      if (gameStateRef.current === 'INTRO') {
+        // Smooth cinematic fly-in from distance to arcade view
+        camera.position.z += (7.8 - camera.position.z) * (1 - Math.exp(-4 * dt));
+        camera.position.y += (3.2 - camera.position.y) * (1 - Math.exp(-4 * dt));
+        camera.lookAt(0, 1.2, -18.0);
+        gridHelper.position.z = (gridHelper.position.z + 20 * dt) % 4;
+
+        parentCoreRed.rotation.y += dt * 2.0;
+        parentCoreBlue.rotation.y += dt * 2.0;
+      } else if (gameStateRef.current === 'START') {
         camera.position.set(0, 3.2, 7.8);
         camera.lookAt(0, 1.2, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 15 * dt) % 4;
@@ -1123,6 +1141,7 @@ export default function App() {
 
     return () => {
       if (bgmTimer) clearInterval(bgmTimer);
+      if (introTimerRef.current) clearTimeout(introTimerRef.current);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('resize', handleResize);
