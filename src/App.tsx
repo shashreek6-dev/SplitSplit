@@ -589,16 +589,20 @@ export default function App() {
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       const mobileNow = checkIsMobile();
-      // Balanced frame & portal scaling for mobile vs desktop
+      
+      // Proportional to floor grid square size (grid step = 4 units)
+      // Make depth = 4 units (one full floor square) and match width to the lane span
+      const gridSquareSize = 4.0;
       const frameWidth = mobileNow ? 5.2 : 10.6;
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
-      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, 0.45), frameMat);
+      
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, gridSquareSize), frameMat);
       topBar.position.y = 2.4;
       group.add(topBar);
 
       const curbEdge = frameWidth / 2;
       [-curbEdge, curbEdge].forEach(x => {
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.5, 0.45), frameMat);
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.5, gridSquareSize), frameMat);
         pillar.position.set(x, 1.25, 0);
         group.add(pillar);
       });
@@ -622,7 +626,6 @@ export default function App() {
           roughness: 0.2,
         });
 
-        // Crisp portal width proportionate to mobile lane centers
         const portalWidth = mobileNow ? 1.05 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
@@ -1130,8 +1133,8 @@ export default function App() {
         </div>
       )}
 
-      {/* TOP IN-GAME HUD - ADAPTED FOR MOBILE VS DESKTOP */}
-      <div className={`hud-layer ${gameState === 'PLAYING' ? 'active' : ''}`}>
+      {/* TOP IN-GAME HUD - VISIBLE ON PLAYING AND START */}
+      <div className={`hud-layer ${gameState === 'PLAYING' || gameState === 'START' ? 'active' : ''}`}>
         <div className="top-header">
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
             <div className="pill-card">
