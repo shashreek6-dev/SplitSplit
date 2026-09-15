@@ -589,7 +589,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- CIRCULAR GATES REPLACEMENT ---
+    // --- CIRCULAR GATES ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -601,7 +601,6 @@ export default function App() {
         emissiveIntensity: 0.5
       });
 
-      // Outer circular frame ring around the track
       const outerRingGeo = new THREE.TorusGeometry(3.6, 0.12, 16, 64);
       const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
       outerRing.position.y = 1.35;
@@ -622,12 +621,10 @@ export default function App() {
 
         const radius = 1.05;
 
-        // Circular torus rim for the target portal
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
         pGroup.add(ringMesh);
 
-        // Circular semi-transparent energy disk inside the ring
         const diskGeo = new THREE.CircleGeometry(radius, 32);
         const diskMat = new THREE.MeshBasicMaterial({ 
           color: colorHex, 
@@ -638,14 +635,12 @@ export default function App() {
         const diskMesh = new THREE.Mesh(diskGeo, diskMat);
         pGroup.add(diskMesh);
 
-        // Collectible / target diamond shard floating inside the center
         const shard = new THREE.Mesh(
           new THREE.OctahedronGeometry(0.2, 0),
           new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5 })
         );
-        shard.position.set(0, 0, 0);
-        shardGroup.add(shard);
         shard.position.set(x, 1.25, 0);
+        shardGroup.add(shard);
 
         pGroup.position.set(x, 1.25, 0);
         return pGroup;
@@ -809,8 +804,9 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
+        // --- CLOSER / TIGHTER GATE DISTANCE ---
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 65);
+          spawnNextGate(-i * 26); // Reduced initial gap between gates
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1067,8 +1063,9 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            const safeMinSpacing = 65;
-            const spacing = Math.max(safeMinSpacing, 75 - localScore * 0.1);
+            // --- TIGHTER RECYCLING SPACING ---
+            const safeMinSpacing = 22; // Closer gate distance
+            const spacing = Math.max(safeMinSpacing, 28 - localScore * 0.05);
             spawnNextGate(furthestZ - spacing);
           }
         }
