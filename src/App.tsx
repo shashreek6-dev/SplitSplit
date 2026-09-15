@@ -444,7 +444,7 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const checkIsMobile =() => window.innerWidth <= 768;
+    const checkIsMobile = () => window.innerWidth <= 768;
     const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
@@ -635,7 +635,6 @@ export default function App() {
           metalness: 0.2
         });
 
-        // Increased portal width from 1.58 / 0.95 to 2.3 for a wider gateway
         const portalWidth = 2.3;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
@@ -821,9 +820,9 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
-        // Increased initial distance between spawned gates
+        // Safe initial separation distance (-65 units apart)
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 50);
+          spawnNextGate(-i * 65);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1080,9 +1079,8 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            // Increased minimum gap and base spacing so wider gates do not intersect
-            const safeMinSpacing = 48;
-            const spacing = Math.max(safeMinSpacing, 55 - localScore * 0.1);
+            const safeMinSpacing = 65;
+            const spacing = Math.max(safeMinSpacing, 75 - localScore * 0.1);
             spawnNextGate(furthestZ - spacing);
           }
         }
