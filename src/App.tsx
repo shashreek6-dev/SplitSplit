@@ -589,12 +589,9 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
+    // --- CIRCULAR GATES REPLACEMENT ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
-      const mobileNow = checkIsMobile();
-      
-      const frameWidth = mobileNow ? 6.4 : 9.2;
-      const frameDepth = 0.6;
       
       const frameMat = new THREE.MeshStandardMaterial({ 
         color: 0x1e294b, 
@@ -603,73 +600,62 @@ export default function App() {
         emissive: 0x0f172a,
         emissiveIntensity: 0.5
       });
-      
-      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.28, frameDepth), frameMat);
-      topBar.position.y = 2.4;
-      group.add(topBar);
 
-      const curbEdge = frameWidth / 2;
-      [-curbEdge, curbEdge].forEach(x => {
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.28, 2.5, frameDepth), frameMat);
-        pillar.position.set(x, 1.25, 0);
-        group.add(pillar);
-      });
-
-      const shield = new THREE.Mesh(
-        new THREE.BoxGeometry(frameWidth - 0.2, 2.1, 0.02),
-        new THREE.MeshBasicMaterial({ color: 0x080a1a, transparent: true, opacity: 0.35 })
-      );
-      shield.position.y = 1.15;
-      group.add(shield);
+      // Outer circular frame ring around the track
+      const outerRingGeo = new THREE.TorusGeometry(3.6, 0.12, 16, 64);
+      const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
+      outerRing.position.y = 1.35;
+      group.add(outerRing);
 
       const shardGroup = new THREE.Group();
 
-      const createPortalSlot = (laneIdx: number, colorHex: number) => {
+      const createCircularPortal = (laneIdx: number, colorHex: number) => {
         const pGroup = new THREE.Group();
         const x = LANE_CENTERS[laneIdx];
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 2.0,
+          emissiveIntensity: 2.2,
           roughness: 0.1,
           metalness: 0.3
         });
 
-        const slotWidth = 0.95;
+        const radius = 1.05;
 
-        [-slotWidth / 2, slotWidth / 2].forEach(px => {
-          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.1, 0.2), pMat);
-          post.position.set(px, 1.15, 0);
-          pGroup.add(post);
+        // Circular torus rim for the target portal
+        const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
+        const ringMesh = new THREE.Mesh(ringGeo, pMat);
+        pGroup.add(ringMesh);
+
+        // Circular semi-transparent energy disk inside the ring
+        const diskGeo = new THREE.CircleGeometry(radius, 32);
+        const diskMat = new THREE.MeshBasicMaterial({ 
+          color: colorHex, 
+          transparent: true, 
+          opacity: 0.25, 
+          side: THREE.DoubleSide 
         });
+        const diskMesh = new THREE.Mesh(diskGeo, diskMat);
+        pGroup.add(diskMesh);
 
-        const lintel = new THREE.Mesh(new THREE.BoxGeometry(slotWidth + 0.15, 0.1, 0.2), pMat);
-        lintel.position.set(0, 2.2, 0);
-        pGroup.add(lintel);
-
-        const curtain = new THREE.Mesh(
-          new THREE.PlaneGeometry(slotWidth, 2.05),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
-        );
-        curtain.position.set(0, 1.15, 0);
-        pGroup.add(curtain);
-
+        // Collectible / target diamond shard floating inside the center
         const shard = new THREE.Mesh(
           new THREE.OctahedronGeometry(0.2, 0),
           new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5 })
         );
-        shard.position.set(0, 0.5, 0);
+        shard.position.set(0, 0, 0);
         shardGroup.add(shard);
+        shard.position.set(x, 1.25, 0);
 
-        pGroup.position.x = x;
+        pGroup.position.set(x, 1.25, 0);
         return pGroup;
       };
 
       const redColorHex = activeSkinConfig.colorA;
       const blueColorHex = activeSkinConfig.colorB;
 
-      group.add(createPortalSlot(redLane, redColorHex));
-      group.add(createPortalSlot(blueLane, blueColorHex));
+      group.add(createCircularPortal(redLane, redColorHex));
+      group.add(createCircularPortal(blueLane, blueColorHex));
       group.add(shardGroup);
 
       group.position.z = z;
@@ -823,7 +809,6 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
-        // Generous initial separation distance (-65 units apart)
         for (let i = 1; i <= 5; i++) {
           spawnNextGate(-i * 65);
         }
