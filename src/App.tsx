@@ -226,7 +226,6 @@ export default function App() {
     const startSynthwaveTrack = () => {
       if (bgmTimer) return;
       const bassSeq = [43.65, 43.65, 51.91, 38.89, 43.65, 43.65, 58.27, 48.99];
-      const padChords = [174.61, 220.0, 261.63, 329.63];
 
       bgmTimer = window.setInterval(() => {
         if (!audioCtx || !musicBus || gameStateRef.current !== 'PLAYING' || mutedInternal) return;
@@ -594,14 +593,15 @@ export default function App() {
       const group = new THREE.Group();
       const mobileNow = checkIsMobile();
       
-      const frameWidth = 10.6;
-      const frameDepth = 0.8;
+      const frameWidth = mobileNow ? 6.4 : 9.2;
+      const frameDepth = 0.6;
+      
       const frameMat = new THREE.MeshStandardMaterial({ 
-        color: 0x0f172a, 
+        color: 0x1e294b, 
         roughness: 0.2, 
-        metalness: 0.9,
-        emissive: 0x1e294b,
-        emissiveIntensity: 0.4 
+        metalness: 0.8,
+        emissive: 0x0f172a,
+        emissiveIntensity: 0.5
       });
       
       const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.28, frameDepth), frameMat);
@@ -624,49 +624,52 @@ export default function App() {
 
       const shardGroup = new THREE.Group();
 
-      const createPortal = (laneIdx: number, colorHex: number) => {
+      const createPortalSlot = (laneIdx: number, colorHex: number) => {
         const pGroup = new THREE.Group();
         const x = LANE_CENTERS[laneIdx];
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 1.8,
+          emissiveIntensity: 2.0,
           roughness: 0.1,
-          metalness: 0.2
+          metalness: 0.3
         });
 
-        const portalWidth = 2.3;
+        const slotWidth = 0.95;
 
-        [-portalWidth / 2, portalWidth / 2].forEach(px => {
-          const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.22), pMat);
+        [-slotWidth / 2, slotWidth / 2].forEach(px => {
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.1, 0.2), pMat);
           post.position.set(px, 1.15, 0);
           pGroup.add(post);
         });
 
-        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.24, 0.12, 0.22), pMat);
-        header.position.set(0, 2.2, 0);
-        pGroup.add(header);
+        const lintel = new THREE.Mesh(new THREE.BoxGeometry(slotWidth + 0.15, 0.1, 0.2), pMat);
+        lintel.position.set(0, 2.2, 0);
+        pGroup.add(lintel);
 
         const curtain = new THREE.Mesh(
-          new THREE.PlaneGeometry(portalWidth, 2.05),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+          new THREE.PlaneGeometry(slotWidth, 2.05),
+          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.22, side: THREE.DoubleSide })
         );
         curtain.position.set(0, 1.15, 0);
         pGroup.add(curtain);
 
         const shard = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.22, 0),
-          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5, roughness: 0.1 })
+          new THREE.OctahedronGeometry(0.2, 0),
+          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5 })
         );
-        shard.position.set(x, 0.5, 0);
+        shard.position.set(0, 0.5, 0);
         shardGroup.add(shard);
 
         pGroup.position.x = x;
         return pGroup;
       };
 
-      group.add(createPortal(redLane, activeSkinConfig.colorA));
-      group.add(createPortal(blueLane, activeSkinConfig.colorB));
+      const redColorHex = activeSkinConfig.colorA;
+      const blueColorHex = activeSkinConfig.colorB;
+
+      group.add(createPortalSlot(redLane, redColorHex));
+      group.add(createPortalSlot(blueLane, blueColorHex));
       group.add(shardGroup);
 
       group.position.z = z;
@@ -820,7 +823,7 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
-        // Safe initial separation distance (-65 units apart)
+        // Generous initial separation distance (-65 units apart)
         for (let i = 1; i <= 5; i++) {
           spawnNextGate(-i * 65);
         }
