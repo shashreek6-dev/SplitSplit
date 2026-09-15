@@ -593,8 +593,9 @@ export default function App() {
 
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
+      const mobileNow = checkIsMobile();
       
-      const frameWidth = 10.6;
+      const frameWidth = mobileNow ? 5.2 : 10.6;
       const frameDepth = 0.8;
       const frameMat = new THREE.MeshStandardMaterial({ 
         color: 0x0f172a, 
@@ -635,7 +636,7 @@ export default function App() {
           metalness: 0.2
         });
 
-        const portalWidth = 1.58;
+        const portalWidth = mobileNow ? 0.95 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.22), pMat);
@@ -821,7 +822,7 @@ export default function App() {
         setTimeout(() => setTutorialHint(null), 4000);
 
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 38);
+          spawnNextGate(-i * 42); // Safe initial separation distance
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1073,8 +1074,14 @@ export default function App() {
           if (gate.z > 14) {
             scene.remove(gate.group);
             gates.splice(i, 1);
-            const furthestZ = gates.reduce((min, g) => Math.min(min, g.z), 0);
-            const spacing = Math.max(30, 40 - localScore * 0.15);
+            
+            // Safe furthestZ calculation without risky '0' fallback
+            const furthestZ = gates.length > 0 
+              ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
+              : 0;
+
+            const safeMinSpacing = 36;
+            const spacing = Math.max(safeMinSpacing, 45 - localScore * 0.12);
             spawnNextGate(furthestZ - spacing);
           }
         }
