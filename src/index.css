@@ -595,11 +595,11 @@ html, body, #root {
 }
 
 /* ==========================================================================
-   STRICT MOBILE PORTRAIT FIXES (For iOS Safari & Android Chrome)
+   STRICT MOBILE PORTRAIT FIXES (Thumb Zone Layout & Scaling)
    ========================================================================== */
 @media (max-width: 768px) {
   .hud-layer {
-    padding: max(env(safe-area-inset-top), 16px) 10px calc(env(safe-area-inset-bottom, 12px) + 16px) 10px !important;
+    padding: max(env(safe-area-inset-top), 16px) 12px 10px 12px !important;
     justify-content: space-between !important;
   }
 
@@ -633,20 +633,33 @@ html, body, #root {
     font-size: 7.5px;
   }
 
+  /* Fixed Floating Thumb-Zone Buttons positioned exactly over your blue lines */
   .touch-row {
-    max-width: 100% !important;
-    gap: 8px !important;
-    margin-bottom: calc(env(safe-area-inset-bottom, 8px) + 8px) !important;
+    position: fixed !important;
+    bottom: calc(env(safe-area-inset-bottom, 16px) + 24px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    width: calc(100% - 32px) !important;
+    max-width: none !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    gap: 20px !important;
+    pointer-events: none !important;
+    z-index: 50 !important;
   }
 
   .neon-btn {
-    height: 54px !important;
-    border-radius: 14px !important;
+    pointer-events: auto !important;
+    width: 44% !important;
+    height: 72px !important;
+    border-radius: 20px !important;
+    background: rgba(14, 18, 36, 0.94) !important;
+    backdrop-filter: blur(16px) !important;
   }
 
   .btn-label {
-    font-size: 10.5px !important;
-    letter-spacing: 0.5px !important;
+    font-size: 11px !important;
+    letter-spacing: 0.6px !important;
   }
 
   .btn-sub {

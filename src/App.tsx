@@ -483,6 +483,11 @@ export default function App() {
     scene.add(parentCoreRed);
     scene.add(parentCoreBlue);
 
+    // Scale down the player balls nicely on mobile
+    const coreScale = checkIsMobile() ? 0.68 : 1.0;
+    parentCoreRed.scale.set(coreScale, coreScale, coreScale);
+    parentCoreBlue.scale.set(coreScale, coreScale, coreScale);
+
     let activeSkinConfig = skins.find(s => s.id === equippedSkinId) || skins[0];
 
     const buildCoreMesh = (colorHex: number, shapeType: string) => {
@@ -591,9 +596,8 @@ export default function App() {
       const mobileNow = checkIsMobile();
       
       // Proportional to floor grid square size (grid step = 4 units)
-      // Make depth = 4 units (one full floor square) and match width to the lane span
       const gridSquareSize = 4.0;
-      const frameWidth = mobileNow ? 5.2 : 10.6;
+      const frameWidth = mobileNow ? 4.8 : 10.6;
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
       
       const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, gridSquareSize), frameMat);
@@ -626,7 +630,7 @@ export default function App() {
           roughness: 0.2,
         });
 
-        const portalWidth = mobileNow ? 1.05 : 1.58;
+        const portalWidth = mobileNow ? 0.85 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.25), pMat);
