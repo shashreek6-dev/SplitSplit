@@ -111,7 +111,6 @@ function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: n
 export default function App() {
   const mountRef = useRef<HTMLDivElement>(null);
 
-  // Responsive device detection state
   const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
 
   const [score, setScore] = useState(0);
@@ -154,7 +153,6 @@ export default function App() {
     toggleMute: () => void;
   } | null>(null);
 
-  // Keep mobile state updated on resize
   useEffect(() => {
     const handleWindowResize = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -446,7 +444,6 @@ export default function App() {
       curbs.push(curb);
     });
 
-    // Proportional lane spacing tuned cleanly for mobile vs desktop
     const checkIsMobile = () => window.innerWidth <= 768;
     const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
@@ -592,6 +589,7 @@ export default function App() {
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       const mobileNow = checkIsMobile();
+      // Balanced frame & portal scaling for mobile vs desktop
       const frameWidth = mobileNow ? 5.2 : 10.6;
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
       const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, 0.45), frameMat);
@@ -624,7 +622,8 @@ export default function App() {
           roughness: 0.2,
         });
 
-        const portalWidth = mobileNow ? 0.72 : 1.58;
+        // Crisp portal width proportionate to mobile lane centers
+        const portalWidth = mobileNow ? 1.05 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.25), pMat);
