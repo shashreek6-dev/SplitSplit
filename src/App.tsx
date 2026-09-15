@@ -589,9 +589,23 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- CIRCULAR GATES WITHOUT BLACK OUTER RING ---
+    // --- CIRCULAR GATES WITH NON-INTERSECTING RADIUS ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
+      
+      const frameMat = new THREE.MeshStandardMaterial({ 
+        color: 0x1e294b, 
+        roughness: 0.2, 
+        metalness: 0.8,
+        emissive: 0x0f172a,
+        emissiveIntensity: 0.5
+      });
+
+      const outerRingGeo = new THREE.TorusGeometry(3.6, 0.12, 16, 64);
+      const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
+      outerRing.position.y = 1.35;
+      group.add(outerRing);
+
       const shardGroup = new THREE.Group();
 
       const createCircularPortal = (laneIdx: number, colorHex: number) => {
@@ -605,9 +619,10 @@ export default function App() {
           metalness: 0.3
         });
 
-        const radius = 1.05;
+        // Reduced radius to 0.62 so side-by-side circular rings never intersect/overlap each other
+        const radius = 0.62;
 
-        const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
+        const ringGeo = new THREE.TorusGeometry(radius, 0.07, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
         pGroup.add(ringMesh);
 
@@ -790,9 +805,8 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
-        // --- BALANCED GATE DISTANCE ---
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 42); // Balanced distance between gates
+          spawnNextGate(-i * 26);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1049,9 +1063,8 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            // --- BALANCED RECYCLING SPACING ---
-            const safeMinSpacing = 38; // Clean gap so gates do not crowd or touch
-            const spacing = Math.max(safeMinSpacing, 46 - localScore * 0.08);
+            const safeMinSpacing = 22;
+            const spacing = Math.max(safeMinSpacing, 28 - localScore * 0.05);
             spawnNextGate(furthestZ - spacing);
           }
         }
