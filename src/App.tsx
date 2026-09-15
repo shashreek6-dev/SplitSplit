@@ -444,7 +444,8 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const LANE_CENTERS = [-3.0, -1.0, 1.0, 3.0];
+    const checkIsMobile = () => window.innerWidth <= 768;
+    const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
@@ -482,8 +483,8 @@ export default function App() {
     scene.add(parentCoreRed);
     scene.add(parentCoreBlue);
 
-    // Uniform scale (1.0) across all devices
-    const coreScale = 1.0;
+    // Scaled down smaller so they don't clip outside the screen when spreading
+    const coreScale = checkIsMobile() ? 0.58 : 0.75;
     parentCoreRed.scale.set(coreScale, coreScale, coreScale);
     parentCoreBlue.scale.set(coreScale, coreScale, coreScale);
 
@@ -593,7 +594,6 @@ export default function App() {
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
-      // Uniform size for gates across all screens
       const frameWidth = 10.6;
       const frameDepth = 0.8;
       const frameMat = new THREE.MeshStandardMaterial({ 
