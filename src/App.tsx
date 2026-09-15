@@ -444,8 +444,7 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const checkIsMobile = () => window.innerWidth <= 768;
-    const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
+    const LANE_CENTERS = [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
@@ -483,8 +482,8 @@ export default function App() {
     scene.add(parentCoreRed);
     scene.add(parentCoreBlue);
 
-    // Scale down the player balls nicely on mobile
-    const coreScale = checkIsMobile() ? 0.68 : 1.0;
+    // Uniform scale (1.0) across all devices
+    const coreScale = 1.0;
     parentCoreRed.scale.set(coreScale, coreScale, coreScale);
     parentCoreBlue.scale.set(coreScale, coreScale, coreScale);
 
@@ -593,11 +592,17 @@ export default function App() {
 
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
-      const mobileNow = checkIsMobile();
       
-      const frameWidth = mobileNow ? 5.2 : 10.6;
+      // Uniform size for gates across all screens
+      const frameWidth = 10.6;
       const frameDepth = 0.8;
-      const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e294b, roughness: 0.3, metalness: 0.8 });
+      const frameMat = new THREE.MeshStandardMaterial({ 
+        color: 0x0f172a, 
+        roughness: 0.2, 
+        metalness: 0.9,
+        emissive: 0x1e294b,
+        emissiveIntensity: 0.4 
+      });
       
       const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.28, frameDepth), frameMat);
       topBar.position.y = 2.4;
@@ -610,10 +615,9 @@ export default function App() {
         group.add(pillar);
       });
 
-      // Subtle, transparent backing instead of a massive solid black wall
       const shield = new THREE.Mesh(
         new THREE.BoxGeometry(frameWidth - 0.2, 2.1, 0.02),
-        new THREE.MeshBasicMaterial({ color: 0x080a1a, transparent: true, opacity: 0.25 })
+        new THREE.MeshBasicMaterial({ color: 0x080a1a, transparent: true, opacity: 0.35 })
       );
       shield.position.y = 1.15;
       group.add(shield);
@@ -626,32 +630,33 @@ export default function App() {
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 1.6,
-          roughness: 0.2,
+          emissiveIntensity: 1.8,
+          roughness: 0.1,
+          metalness: 0.2
         });
 
-        const portalWidth = mobileNow ? 0.88 : 1.58;
+        const portalWidth = 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
-          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.1, 0.2), pMat);
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.22), pMat);
           post.position.set(px, 1.15, 0);
           pGroup.add(post);
         });
 
-        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.2, 0.1, 0.2), pMat);
+        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.24, 0.12, 0.22), pMat);
         header.position.set(0, 2.2, 0);
         pGroup.add(header);
 
         const curtain = new THREE.Mesh(
           new THREE.PlaneGeometry(portalWidth, 2.05),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.18, side: THREE.DoubleSide })
+          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
         );
         curtain.position.set(0, 1.15, 0);
         pGroup.add(curtain);
 
         const shard = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.2, 0),
-          new THREE.MeshStandardMaterial({ color: 0xffb703, emissive: 0xffb703, emissiveIntensity: 1.2, roughness: 0.2 })
+          new THREE.OctahedronGeometry(0.22, 0),
+          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5, roughness: 0.1 })
         );
         shard.position.set(x, 0.5, 0);
         shardGroup.add(shard);
