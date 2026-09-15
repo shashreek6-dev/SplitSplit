@@ -444,7 +444,7 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const checkIsMobile = () => window.innerWidth <= 768;
+    const checkIsMobile =() => window.innerWidth <= 768;
     const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
@@ -483,7 +483,6 @@ export default function App() {
     scene.add(parentCoreRed);
     scene.add(parentCoreBlue);
 
-    // Scaled down smaller so they don't clip outside the screen when spreading
     const coreScale = checkIsMobile() ? 0.58 : 0.75;
     parentCoreRed.scale.set(coreScale, coreScale, coreScale);
     parentCoreBlue.scale.set(coreScale, coreScale, coreScale);
@@ -595,7 +594,7 @@ export default function App() {
       const group = new THREE.Group();
       const mobileNow = checkIsMobile();
       
-      const frameWidth = mobileNow ? 5.2 : 10.6;
+      const frameWidth = 10.6;
       const frameDepth = 0.8;
       const frameMat = new THREE.MeshStandardMaterial({ 
         color: 0x0f172a, 
@@ -636,7 +635,8 @@ export default function App() {
           metalness: 0.2
         });
 
-        const portalWidth = mobileNow ? 0.95 : 1.58;
+        // Increased portal width from 1.58 / 0.95 to 2.3 for a wider gateway
+        const portalWidth = 2.3;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.22), pMat);
@@ -821,8 +821,9 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
+        // Increased initial distance between spawned gates
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 42); // Safe initial separation distance
+          spawnNextGate(-i * 50);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1075,13 +1076,13 @@ export default function App() {
             scene.remove(gate.group);
             gates.splice(i, 1);
             
-            // Safe furthestZ calculation without risky '0' fallback
             const furthestZ = gates.length > 0 
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            const safeMinSpacing = 36;
-            const spacing = Math.max(safeMinSpacing, 45 - localScore * 0.12);
+            // Increased minimum gap and base spacing so wider gates do not intersect
+            const safeMinSpacing = 48;
+            const spacing = Math.max(safeMinSpacing, 55 - localScore * 0.1);
             spawnNextGate(furthestZ - spacing);
           }
         }
