@@ -1180,20 +1180,22 @@ export default function App() {
             <span className="gold">{shards}</span>
           </div>
         </div>
+      </div>
 
-        {/* BOTTOM CONTROLS: ADAPTED TEXT FOR DESKTOP VS MOBILE */}
-        <div className="touch-row">
+      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR */}
+      {isMobile && (
+        <div id="persistent-touch-bar">
           <div className="neon-btn btn-swap" onPointerDown={() => engineRef.current?.triggerSwap()}>
-            <div className="btn-label">{isMobile ? 'SWAP [TAP]' : 'SWAP [A / Q]'}</div>
+            <div className="btn-label">SWAP [TAP]</div>
             <div className="btn-sub">INVERT ORDER</div>
           </div>
 
           <div className="neon-btn btn-spread" onPointerDown={() => engineRef.current?.triggerSpread()}>
-            <div className="btn-label">{isMobile ? 'SPREAD [HOLD/TAP]' : 'SPREAD [D / SPACE]'}</div>
+            <div className="btn-label">SPREAD [HOLD/TAP]</div>
             <div className="btn-sub">WIDE / NARROW</div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* START SCREEN MODAL */}
       {gameState === 'START' && (

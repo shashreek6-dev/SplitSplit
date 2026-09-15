@@ -181,62 +181,6 @@ html, body, #root {
   text-shadow: 0 0 12px #ffcc00;
 }
 
-.touch-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  max-width: 580px;
-  margin: 0 auto;
-  pointer-events: auto;
-}
-
-.neon-btn {
-  flex: 1;
-  height: 68px;
-  border-radius: 20px;
-  background: rgba(14, 18, 36, 0.95);
-  backdrop-filter: blur(14px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  touch-action: manipulation;
-  transition: transform 0.06s ease;
-  padding: 0 10px;
-}
-
-.neon-btn:active {
-  transform: scale(0.93);
-}
-
-.btn-swap {
-  border: 2px solid rgba(255, 42, 109, 0.85);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
-
-.btn-spread {
-  border: 2px solid rgba(0, 229, 255, 0.85);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-}
-
-.btn-label {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  color: #ffffff;
-  white-space: nowrap;
-}
-
-.btn-sub {
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  color: rgba(255, 255, 255, 0.65);
-  white-space: nowrap;
-}
-
 .hud-btn-icon {
   width: 42px;
   height: 42px;
@@ -306,6 +250,73 @@ html, body, #root {
   letter-spacing: 3px;
   color: #ffffff;
   margin-top: 4px;
+}
+
+/* Persistent Mobile Touch Bar outside the animated HUD */
+#persistent-touch-bar {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  right: 12px;
+  width: calc(100% - 24px);
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  z-index: 100;
+  pointer-events: auto;
+}
+
+#persistent-touch-bar .neon-btn {
+  flex: 1;
+  height: 66px;
+  border-radius: 20px;
+  background: rgba(14, 18, 36, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 0.06s ease;
+  padding: 0 8px;
+}
+
+#persistent-touch-bar .neon-btn:active {
+  transform: scale(0.93);
+}
+
+.btn-swap {
+  border: 2px solid rgba(255, 42, 109, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.btn-spread {
+  border: 2px solid rgba(0, 229, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+
+.btn-label {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.btn-sub {
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  color: rgba(255, 255, 255, 0.65);
+  white-space: nowrap;
+}
+
+@media (min-width: 769px) {
+  #persistent-touch-bar {
+    display: none;
+  }
 }
 
 /* Modal Styling Overlays */
@@ -594,14 +605,9 @@ html, body, #root {
   font-weight: 900;
 }
 
-/* ==========================================================================
-   STRICT MOBILE PORTRAIT FIXES (Thumb Zone Layout & Scaling)
-   ========================================================================== */
 @media (max-width: 768px) {
   .hud-layer {
     padding: 12px 10px 16px 10px !important;
-    justify-content: space-between !important;
-    height: 100dvh;
   }
 
   .pill-card {
@@ -632,34 +638,6 @@ html, body, #root {
 
   .fever-label {
     font-size: 7.5px;
-  }
-
-  /* Make touch buttons part of the flex container so they never fall off-screen */
-  .touch-row {
-    position: relative !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    gap: 12px !important;
-    margin-bottom: 4px !important;
-    pointer-events: auto !important;
-    z-index: 50 !important;
-  }
-
-  .neon-btn {
-    height: 64px !important;
-    border-radius: 18px !important;
-  }
-
-  .btn-label {
-    font-size: 11px !important;
-    letter-spacing: 0.6px !important;
-  }
-
-  .btn-sub {
-    font-size: 7.5px !important;
   }
 
   .onboarding-hint-banner {
