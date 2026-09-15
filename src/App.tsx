@@ -73,52 +73,34 @@ function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: n
             <circle cx="28" cy="28" r="3" fill="#ffffff" opacity="0.7" />
           </g>
         )}
-
         {shape === 'icosa' && (
           <g filter={`url(#${glowId})`}>
             <polygon points="32,10 50,22 50,42 32,54 14,42 14,22" fill={`url(#${gradId})`} opacity="0.85" />
             <polygon points="32,10 42,32 32,54 22,32" fill="none" stroke="#ffffff" strokeWidth="1.5" opacity="0.9" />
-            <line x1="14" y1="22" x2="50" y2="42" stroke={cA} strokeWidth="1.5" />
-            <line x1="14" y1="42" x2="50" y2="22" stroke={cB} strokeWidth="1.5" />
           </g>
         )}
-
         {shape === 'prism' && (
           <g filter={`url(#${glowId})`}>
             <polygon points="32,8 54,32 32,56 10,32" fill={`url(#${gradId})`} />
-            <line x1="10" y1="32" x2="54" y2="32" stroke="#ffffff" strokeWidth="2" opacity="0.8" />
             <polygon points="32,8 40,32 32,56 24,32" fill="none" stroke="#ffffff" strokeWidth="1.8" />
           </g>
         )}
-
         {shape === 'hazard' && (
           <g filter={`url(#${glowId})`}>
             <circle cx="32" cy="32" r="12" fill={`url(#${gradId})`} />
-            <polygon points="32,6 36,18 28,18" fill={cA} />
-            <polygon points="32,58 36,46 28,46" fill={cA} />
-            <polygon points="6,32 18,28 18,36" fill={cB} />
-            <polygon points="58,32 46,28 46,36" fill={cB} />
             <circle cx="32" cy="32" r="5" fill="#030408" stroke="#ffffff" strokeWidth="1.5" />
           </g>
         )}
-
         {shape === 'blackhole' && (
           <g filter={`url(#${glowId})`}>
             <circle cx="32" cy="32" r="20" fill="none" stroke={`url(#${gradId})`} strokeWidth="5.5" />
-            <ellipse cx="32" cy="32" rx="26" ry="7" fill="none" stroke="#ffffff" strokeWidth="1.8" transform="rotate(35 32 32)" />
             <circle cx="32" cy="32" r="11" fill="#030408" />
-            <circle cx="32" cy="32" r="8" fill="none" stroke={cA} strokeWidth="1.2" strokeDasharray="3 3" />
           </g>
         )}
-
         {shape === 'solar' && (
           <g filter={`url(#${glowId})`}>
             <circle cx="32" cy="32" r="15" fill={`url(#${gradId})`} />
             <circle cx="32" cy="32" r="21" fill="none" stroke={cB} strokeWidth="2" strokeDasharray="4 3" />
-            <line x1="32" y1="4" x2="32" y2="60" stroke={cA} strokeWidth="1.5" />
-            <line x1="4" y1="32" x2="60" y2="32" stroke={cA} strokeWidth="1.5" />
-            <line x1="12" y1="12" x2="52" y2="52" stroke={cB} strokeWidth="1.5" />
-            <line x1="12" y1="52" x2="52" y2="12" stroke={cB} strokeWidth="1.5" />
           </g>
         )}
       </svg>
@@ -129,6 +111,9 @@ function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: n
 export default function App() {
   const mountRef = useRef<HTMLDivElement>(null);
 
+  // Responsive device detection state
+  const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth <= 768);
+
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(Number(localStorage.getItem('split_best') || 0));
   const [shards, setShards] = useState(Number(localStorage.getItem('split_shards') || 0));
@@ -138,7 +123,7 @@ export default function App() {
   const [isMuted, setIsMuted] = useState(false);
   const [tutorialHint, setTutorialHint] = useState<string | null>(null);
   const [milestone, setMilestone] = useState<{ title: string; sub: string } | null>(null);
-  
+
   const [gameState, setGameState] = useState<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -169,6 +154,15 @@ export default function App() {
     toggleMute: () => void;
   } | null>(null);
 
+  // Keep mobile state updated on resize
+  useEffect(() => {
+    const handleWindowResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleWindowResize);
+    return () => window.removeEventListener('resize', handleWindowResize);
+  }, []);
+
   useEffect(() => {
     if (!mountRef.current) return;
 
@@ -183,7 +177,6 @@ export default function App() {
     const initAudio = () => {
       if (!audioCtx) {
         audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-
         const compressor = audioCtx.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(-16, audioCtx.currentTime);
         compressor.knee.setValueAtTime(10, audioCtx.currentTime);
@@ -193,10 +186,8 @@ export default function App() {
 
         masterGain = audioCtx.createGain();
         masterGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-
         musicBus = audioCtx.createGain();
         musicBus.gain.setValueAtTime(0.65, audioCtx.currentTime);
-
         sfxBus = audioCtx.createGain();
         sfxBus.gain.setValueAtTime(0.9, audioCtx.currentTime);
 
@@ -204,7 +195,6 @@ export default function App() {
         sfxBus.connect(compressor);
         compressor.connect(masterGain);
         masterGain.connect(audioCtx.destination);
-
         startSynthwaveTrack();
       }
       if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -253,10 +243,8 @@ export default function App() {
           kickOsc.type = 'sine';
           kickOsc.frequency.setValueAtTime(130, now);
           kickOsc.frequency.exponentialRampToValueAtTime(32, now + 0.08);
-
           kickGain.gain.setValueAtTime(isOverdrive ? 0.75 : 0.55, now);
           kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-
           kickOsc.connect(kickGain);
           kickGain.connect(musicBus);
           kickOsc.start(now);
@@ -274,11 +262,9 @@ export default function App() {
           const hatFilter = audioCtx.createBiquadFilter();
           hatFilter.type = 'highpass';
           hatFilter.frequency.setValueAtTime(6500, now);
-
           const hatGain = audioCtx.createGain();
           hatGain.gain.setValueAtTime(0.08, now);
           hatGain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
-
           hat.connect(hatFilter);
           hatFilter.connect(hatGain);
           hatGain.connect(musicBus);
@@ -290,43 +276,18 @@ export default function App() {
         const bassGain = audioCtx.createGain();
         const bFilter = audioCtx.createBiquadFilter();
         const root = bassSeq[Math.floor(bgmStep / 4) % bassSeq.length] * (isOverdrive ? 1.5 : 1.0);
-
         bassOsc.type = 'sawtooth';
         bassOsc.frequency.setValueAtTime(root, now);
-
         bFilter.type = 'lowpass';
         bFilter.frequency.setValueAtTime(isOverdrive ? 600 : 320, now);
         bFilter.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-
         bassGain.gain.setValueAtTime(0.22, now);
         bassGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
-
         bassOsc.connect(bFilter);
         bFilter.connect(bassGain);
         bassGain.connect(musicBus);
         bassOsc.start(now);
         bassOsc.stop(now + 0.1);
-
-        if (beatInBar % 8 === 0) {
-          const padOsc = audioCtx.createOscillator();
-          const padGain = audioCtx.createGain();
-          const padFilter = audioCtx.createBiquadFilter();
-
-          padOsc.type = 'sine';
-          padOsc.frequency.setValueAtTime(padChords[(bgmStep / 8) % padChords.length], now);
-
-          padFilter.type = 'lowpass';
-          padFilter.frequency.setValueAtTime(800, now);
-
-          padGain.gain.setValueAtTime(0.06, now);
-          padGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-
-          padOsc.connect(padFilter);
-          padFilter.connect(padGain);
-          padGain.connect(musicBus);
-          padOsc.start(now);
-          padOsc.stop(now + 0.7);
-        }
 
         bgmStep++;
       }, 117);
@@ -336,22 +297,17 @@ export default function App() {
       if (!audioCtx || !sfxBus || mutedInternal) return;
       duckMusic(0.3, 0.08);
       const now = audioCtx.currentTime;
-
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       const filter = audioCtx.createBiquadFilter();
-
       osc.type = 'triangle';
       osc.frequency.setValueAtTime(1200, now);
       osc.frequency.exponentialRampToValueAtTime(240, now + 0.07);
-
       filter.type = 'bandpass';
       filter.frequency.setValueAtTime(1600, now);
       filter.Q.setValueAtTime(3.0, now);
-
       gain.gain.setValueAtTime(0.32, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
-
       osc.connect(filter);
       filter.connect(gain);
       gain.connect(sfxBus);
@@ -363,16 +319,13 @@ export default function App() {
       if (!audioCtx || !sfxBus || mutedInternal) return;
       duckMusic(0.3, 0.08);
       const now = audioCtx.currentTime;
-
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(220, now);
       osc.frequency.exponentialRampToValueAtTime(45, now + 0.06);
-
       gain.gain.setValueAtTime(0.4, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
       osc.connect(gain);
       gain.connect(sfxBus);
       osc.start(now);
@@ -382,16 +335,13 @@ export default function App() {
     const playGateChime = () => {
       if (!audioCtx || !sfxBus || mutedInternal) return;
       const now = audioCtx.currentTime;
-
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(880, now);
       osc.frequency.exponentialRampToValueAtTime(1760, now + 0.09);
-
       gain.gain.setValueAtTime(0.2, now);
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-
       osc.connect(gain);
       gain.connect(sfxBus);
       osc.start(now);
@@ -401,16 +351,13 @@ export default function App() {
     const playFeverBassDrop = () => {
       if (!audioCtx || !sfxBus || mutedInternal) return;
       const now = audioCtx.currentTime;
-
       const subOsc = audioCtx.createOscillator();
       const subGain = audioCtx.createGain();
       subOsc.type = 'sine';
       subOsc.frequency.setValueAtTime(120, now);
       subOsc.frequency.exponentialRampToValueAtTime(28, now + 0.7);
-
       subGain.gain.setValueAtTime(0.75, now);
       subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
-
       subOsc.connect(subGain);
       subGain.connect(sfxBus);
       subOsc.start(now);
@@ -420,7 +367,6 @@ export default function App() {
     const playShatterHeavy = () => {
       if (!audioCtx || !sfxBus || mutedInternal) return;
       const now = audioCtx.currentTime;
-
       const osc = audioCtx.createOscillator();
       const g = audioCtx.createGain();
       osc.type = 'sawtooth';
@@ -456,7 +402,7 @@ export default function App() {
     scene.fog = new THREE.FogExp2('#080a1a', 0.016);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 24.0, 75.0); // Start further back for cinematic intro fly-in
+    camera.position.set(0, 24.0, 75.0);
     camera.lookAt(0, 1.2, -18.0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -500,8 +446,9 @@ export default function App() {
       curbs.push(curb);
     });
 
-    const isMobilePortrait = window.innerWidth <= 768;
-    const LANE_CENTERS = isMobilePortrait ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
+    // Proportional lane spacing tuned cleanly for mobile vs desktop
+    const checkIsMobile = () => window.innerWidth <= 768;
+    const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
     [-2.0, 0.0, 2.0].forEach(lx => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
@@ -532,7 +479,6 @@ export default function App() {
       });
     }
 
-    // --- 3. DYNAMIC 3D CORES ---
     const parentCoreRed = new THREE.Group();
     const parentCoreBlue = new THREE.Group();
     parentCoreRed.position.set(LANE_CENTERS[1], 0.5, 0);
@@ -589,7 +535,6 @@ export default function App() {
       parentCoreBlue.add(blueMeshInstance.group);
     };
 
-    // --- 4. CONTRAIL TRAILS & PARTICLES ---
     const maxParticles = 40;
     const trailGeo = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(maxParticles * 3 * 2);
@@ -632,7 +577,6 @@ export default function App() {
       }
     };
 
-    // --- 5. GATES ARCHITECTURE (RESPONSIVE WIDTH FOR MOBILE) ---
     interface Gate3D {
       group: THREE.Group;
       shardGroup: THREE.Group;
@@ -647,8 +591,8 @@ export default function App() {
 
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
-
-      const frameWidth = isMobilePortrait ? 6.8 : 10.6;
+      const mobileNow = checkIsMobile();
+      const frameWidth = mobileNow ? 5.2 : 10.6;
       const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
       const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, 0.45), frameMat);
       topBar.position.y = 2.4;
@@ -673,7 +617,6 @@ export default function App() {
       const createPortal = (laneIdx: number, colorHex: number) => {
         const pGroup = new THREE.Group();
         const x = LANE_CENTERS[laneIdx];
-
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
@@ -681,7 +624,7 @@ export default function App() {
           roughness: 0.2,
         });
 
-        const portalWidth = isMobilePortrait ? 0.95 : 1.58;
+        const portalWidth = mobileNow ? 0.72 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
           const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.25), pMat);
@@ -721,7 +664,6 @@ export default function App() {
       return { group, shardGroup, laneRed: redLane, laneBlue: blueLane, z, passed: false, shattered: false };
     };
 
-    // --- 6. GAME CONTROL LOOP ---
     let localScore = 0;
     let localGatesCleared = 0;
     let localFever = 0;
@@ -935,7 +877,6 @@ export default function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    // Cinematic Intro Fly-in Timer
     introTimerRef.current = window.setTimeout(() => {
       if (gameStateRef.current === 'INTRO') {
         gameStateRef.current = 'START';
@@ -943,7 +884,6 @@ export default function App() {
       }
     }, 1400);
 
-    // --- 7. FRAME-INDEPENDENT RENDER LOOP ---
     let lastTime = performance.now();
     let animId: number;
 
@@ -968,7 +908,6 @@ export default function App() {
       }
 
       if (gameStateRef.current === 'INTRO') {
-        // Smooth cinematic fly-in from distance to arcade view
         camera.position.z += (7.8 - camera.position.z) * (1 - Math.exp(-4 * dt));
         camera.position.y += (3.2 - camera.position.y) * (1 - Math.exp(-4 * dt));
         camera.lookAt(0, 1.2, -18.0);
@@ -1179,14 +1118,12 @@ export default function App() {
       <div id="fever-flash-fx" />
       <div ref={mountRef} id="canvas-viewport" />
 
-      {/* FLOATING IN-GAME ONBOARDING HINT */}
       {tutorialHint && (
         <div className="onboarding-hint-banner">
           {tutorialHint}
         </div>
       )}
 
-      {/* MILESTONE LEVEL-UP CELEBRATION */}
       {milestone && (
         <div className="milestone-announcement show">
           <div className="milestone-title-text">{milestone.title}</div>
@@ -1194,7 +1131,7 @@ export default function App() {
         </div>
       )}
 
-      {/* TOP IN-GAME HUD */}
+      {/* TOP IN-GAME HUD - ADAPTED FOR MOBILE VS DESKTOP */}
       <div className={`hud-layer ${gameState === 'PLAYING' ? 'active' : ''}`}>
         <div className="top-header">
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -1233,15 +1170,15 @@ export default function App() {
           </div>
         </div>
 
-        {/* BOTTOM TOUCH CONTROLS */}
+        {/* BOTTOM CONTROLS: ADAPTED TEXT FOR DESKTOP VS MOBILE */}
         <div className="touch-row">
           <div className="neon-btn btn-swap" onPointerDown={() => engineRef.current?.triggerSwap()}>
-            <div className="btn-label">SWAP [A / Q]</div>
+            <div className="btn-label">{isMobile ? 'SWAP [TAP]' : 'SWAP [A / Q]'}</div>
             <div className="btn-sub">INVERT ORDER</div>
           </div>
 
           <div className="neon-btn btn-spread" onPointerDown={() => engineRef.current?.triggerSpread()}>
-            <div className="btn-label">SPREAD [D / SPACE]</div>
+            <div className="btn-label">{isMobile ? 'SPREAD [HOLD/TAP]' : 'SPREAD [D / SPACE]'}</div>
             <div className="btn-sub">WIDE / NARROW</div>
           </div>
         </div>
@@ -1269,9 +1206,15 @@ export default function App() {
             </button>
 
             <div className="controls-hint-row">
-              <span><span className="keycap">A</span> or <span className="keycap">Q</span> SWAP</span>
-              <span>•</span>
-              <span><span className="keycap">D</span> or <span className="keycap">SPACE</span> SPREAD</span>
+              {isMobile ? (
+                <span>TAP BOTTOM BUTTONS TO SWAP / SPREAD</span>
+              ) : (
+                <>
+                  <span><span className="keycap">A</span> or <span className="keycap">Q</span> SWAP</span>
+                  <span>•</span>
+                  <span><span className="keycap">D</span> or <span className="keycap">SPACE</span> SPREAD</span>
+                </>
+              )}
             </div>
           </div>
         </div>
