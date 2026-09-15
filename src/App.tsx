@@ -595,25 +595,25 @@ export default function App() {
       const group = new THREE.Group();
       const mobileNow = checkIsMobile();
       
-      // Proportional to floor grid square size (grid step = 4 units)
-      const gridSquareSize = 4.0;
-      const frameWidth = mobileNow ? 4.8 : 10.6;
-      const frameMat = new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.4, metalness: 0.8 });
+      const frameWidth = mobileNow ? 5.2 : 10.6;
+      const frameDepth = 0.8;
+      const frameMat = new THREE.MeshStandardMaterial({ color: 0x1e294b, roughness: 0.3, metalness: 0.8 });
       
-      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.35, gridSquareSize), frameMat);
+      const topBar = new THREE.Mesh(new THREE.BoxGeometry(frameWidth, 0.28, frameDepth), frameMat);
       topBar.position.y = 2.4;
       group.add(topBar);
 
       const curbEdge = frameWidth / 2;
       [-curbEdge, curbEdge].forEach(x => {
-        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.35, 2.5, gridSquareSize), frameMat);
+        const pillar = new THREE.Mesh(new THREE.BoxGeometry(0.28, 2.5, frameDepth), frameMat);
         pillar.position.set(x, 1.25, 0);
         group.add(pillar);
       });
 
+      // Subtle, transparent backing instead of a massive solid black wall
       const shield = new THREE.Mesh(
-        new THREE.BoxGeometry(frameWidth - 0.2, 2.1, 0.05),
-        new THREE.MeshStandardMaterial({ color: 0x050713, roughness: 0.9, transparent: true, opacity: 0.82 })
+        new THREE.BoxGeometry(frameWidth - 0.2, 2.1, 0.02),
+        new THREE.MeshBasicMaterial({ color: 0x080a1a, transparent: true, opacity: 0.25 })
       );
       shield.position.y = 1.15;
       group.add(shield);
@@ -630,21 +630,21 @@ export default function App() {
           roughness: 0.2,
         });
 
-        const portalWidth = mobileNow ? 0.85 : 1.58;
+        const portalWidth = mobileNow ? 0.88 : 1.58;
 
         [-portalWidth / 2, portalWidth / 2].forEach(px => {
-          const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 2.1, 0.25), pMat);
+          const post = new THREE.Mesh(new THREE.BoxGeometry(0.1, 2.1, 0.2), pMat);
           post.position.set(px, 1.15, 0);
           pGroup.add(post);
         });
 
-        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.24, 0.12, 0.25), pMat);
+        const header = new THREE.Mesh(new THREE.BoxGeometry(portalWidth + 0.2, 0.1, 0.2), pMat);
         header.position.set(0, 2.2, 0);
         pGroup.add(header);
 
         const curtain = new THREE.Mesh(
           new THREE.PlaneGeometry(portalWidth, 2.05),
-          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.24, side: THREE.DoubleSide })
+          new THREE.MeshBasicMaterial({ color: colorHex, transparent: true, opacity: 0.18, side: THREE.DoubleSide })
         );
         curtain.position.set(0, 1.15, 0);
         pGroup.add(curtain);
@@ -812,7 +812,7 @@ export default function App() {
         setGameState('PLAYING');
         setIsTransitioning(false);
 
-        setTutorialHint('SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
+        setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
         for (let i = 1; i <= 5; i++) {
