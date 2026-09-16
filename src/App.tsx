@@ -393,10 +393,10 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS SCENE SETUP ---
+    // --- 2. THREE.JS SCENE SETUP (HIGH-END GRAPHICS UPGRADE) ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#080a1a');
-    scene.fog = new THREE.FogExp2('#080a1a', 0.016);
+    scene.background = new THREE.Color('#030408');
+    scene.fog = new THREE.FogExp2('#030408', 0.013);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 24.0, 75.0);
@@ -406,39 +406,57 @@ export default function App() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.25;
+    renderer.toneMappingExposure = 1.45; // Increased brightness and bloom feel
     mountRef.current.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xdbeafe, 0.65));
-    const mainLight = new THREE.DirectionalLight(0xfffaed, 1.2);
-    mainLight.position.set(12, 28, 14);
+    // Dynamic Multi-Point Lighting
+    scene.add(new THREE.AmbientLight(0xdbeafe, 0.8));
+    const mainLight = new THREE.DirectionalLight(0xfffaed, 1.8);
+    mainLight.position.set(12, 32, 18);
     scene.add(mainLight);
 
-    const sunGeo = new THREE.CircleGeometry(16, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, transparent: true, opacity: 0.35 });
+    const pinkNeonLight = new THREE.PointLight(0xff2a6d, 3.5, 60);
+    pinkNeonLight.position.set(-6, 4, -20);
+    scene.add(pinkNeonLight);
+
+    const cyanNeonLight = new THREE.PointLight(0x00e5ff, 3.5, 60);
+    cyanNeonLight.position.set(6, 4, -20);
+    scene.add(cyanNeonLight);
+
+    // Glowing Cyber Sun Horizon
+    const sunGeo = new THREE.CircleGeometry(22, 48);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, transparent: true, opacity: 0.45 });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunMesh.position.set(0, 14, -130);
+    sunMesh.position.set(0, 16, -140);
     scene.add(sunMesh);
 
+    // High-Gloss Track Floor with Metal Reflections
     const trackFloor = new THREE.Mesh(
-      new THREE.PlaneGeometry(10.5, 260),
-      new THREE.MeshStandardMaterial({ color: 0x0d1124, roughness: 0.3, metalness: 0.8 })
+      new THREE.PlaneGeometry(10.5, 280),
+      new THREE.MeshStandardMaterial({ 
+        color: 0x070914, 
+        roughness: 0.15, 
+        metalness: 0.92,
+        emissive: 0x020308,
+        emissiveIntensity: 0.5
+      })
     );
     trackFloor.rotation.x = -Math.PI / 2;
     trackFloor.position.set(0, -0.02, -50);
     scene.add(trackFloor);
 
-    let gridHelper = new THREE.GridHelper(260, 65, 0x00e5ff, 0x1e294b);
+    let gridHelper = new THREE.GridHelper(280, 70, 0x00e5ff, 0x151c36);
     gridHelper.position.set(0, 0.01, 0);
     scene.add(gridHelper);
 
+    // Glowing Laser Curbs
     const curbs: THREE.Mesh[] = [];
     [-5.25, 5.25].forEach(x => {
       const curb = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, 0.4, 260),
-        new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 0.9, roughness: 0.2 })
+        new THREE.BoxGeometry(0.3, 0.45, 280),
+        new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.6, roughness: 0.1 })
       );
-      curb.position.set(x, 0.2, -50);
+      curb.position.set(x, 0.22, -50);
       scene.add(curb);
       curbs.push(curb);
     });
@@ -454,7 +472,7 @@ export default function App() {
       const lineMat = new THREE.LineBasicMaterial({
         color: lx === 0 ? 0xff2a6d : 0x00e5ff,
         transparent: true,
-        opacity: lx === 0 ? 0.4 : 0.2,
+        opacity: lx === 0 ? 0.55 : 0.3,
       });
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
@@ -462,18 +480,38 @@ export default function App() {
     for (let z = -120; z <= 20; z += 18) {
       [-6.8, 6.8].forEach(px => {
         const pylon = new THREE.Mesh(
-          new THREE.BoxGeometry(0.25, 3.5, 0.25),
+          new THREE.BoxGeometry(0.28, 4.0, 0.28),
           new THREE.MeshStandardMaterial({
             color: px < 0 ? 0xff2a6d : 0x00e5ff,
             emissive: px < 0 ? 0xff2a6d : 0x00e5ff,
-            emissiveIntensity: 0.7,
-            roughness: 0.3,
+            emissiveIntensity: 1.2,
+            roughness: 0.2,
           })
         );
-        pylon.position.set(px, 1.75, z);
+        pylon.position.set(px, 2.0, z);
         scene.add(pylon);
       });
     }
+
+    // High-Velocity Speed Dust Particle Field
+    const dustCount = 120;
+    const dustGeo = new THREE.BufferGeometry();
+    const dustPositions = new Float32Array(dustCount * 3);
+    for (let i = 0; i < dustCount * 3; i += 3) {
+      dustPositions[i] = (Math.random() - 0.5) * 24;
+      dustPositions[i + 1] = Math.random() * 12;
+      dustPositions[i + 2] = (Math.random() - 0.5) * 200;
+    }
+    dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
+    const dustMat = new THREE.PointsMaterial({
+      size: 0.18,
+      color: 0x00ffff,
+      transparent: true,
+      opacity: 0.75,
+      blending: THREE.AdditiveBlending
+    });
+    const dustField = new THREE.Points(dustGeo, dustMat);
+    scene.add(dustField);
 
     const parentCoreRed = new THREE.Group();
     const parentCoreBlue = new THREE.Group();
@@ -503,16 +541,16 @@ export default function App() {
         new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: shapeType === 'solar' ? 2.5 : 1.4,
-          roughness: 0.1,
-          metalness: 0.5,
+          emissiveIntensity: 2.2, // Ultra vibrant emission bloom
+          roughness: 0.05,
+          metalness: 0.8,
         })
       );
       g.add(mainMesh);
 
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(0.56, 0.025, 12, 32),
-        new THREE.MeshBasicMaterial({ color: colorHex })
+        new THREE.TorusGeometry(0.58, 0.03, 16, 36),
+        new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 2.5 })
       );
       g.add(ring);
 
@@ -535,15 +573,15 @@ export default function App() {
       parentCoreBlue.add(blueMeshInstance.group);
     };
 
-    const maxParticles = 40;
+    const maxParticles = 50;
     const trailGeo = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(maxParticles * 3 * 2);
     trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
     const trailMat = new THREE.PointsMaterial({
-      size: 0.22,
+      size: 0.28,
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
     });
     const trailPoints = new THREE.Points(trailGeo, trailMat);
@@ -559,19 +597,19 @@ export default function App() {
       life: number;
     }
     const shatterParticles: ShatterParticle[] = [];
-    const shatterGeom = new THREE.TetrahedronGeometry(0.25, 0);
-    const shatterMat = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+    const shatterGeom = new THREE.TetrahedronGeometry(0.28, 0);
+    const shatterMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 3.0 });
 
     const spawn3DShatterExplosion = (x: number, y: number, z: number) => {
-      for (let p = 0; p < 24; p++) {
+      for (let p = 0; p < 28; p++) {
         const frag = new THREE.Mesh(shatterGeom, shatterMat);
         frag.position.set(x + (Math.random() - 0.5) * 4, y, z);
         scene.add(frag);
         shatterParticles.push({
           mesh: frag,
-          vx: (Math.random() - 0.5) * 16,
-          vy: Math.random() * 8 + 4,
-          vz: -Math.random() * 12 + 2,
+          vx: (Math.random() - 0.5) * 18,
+          vy: Math.random() * 10 + 5,
+          vz: -Math.random() * 14 + 2,
           life: 0.65,
         });
       }
@@ -589,19 +627,19 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- CIRCULAR GATES WITH NON-INTERSECTING RADIUS ---
+    // --- HIGH-FIDELITY CIRCULAR GATES ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
       const frameMat = new THREE.MeshStandardMaterial({ 
         color: 0x1e294b, 
-        roughness: 0.2, 
-        metalness: 0.8,
+        roughness: 0.15, 
+        metalness: 0.95,
         emissive: 0x0f172a,
-        emissiveIntensity: 0.5
+        emissiveIntensity: 0.8
       });
 
-      const outerRingGeo = new THREE.TorusGeometry(3.6, 0.12, 16, 64);
+      const outerRingGeo = new THREE.TorusGeometry(3.6, 0.14, 24, 64);
       const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
       outerRing.position.y = 1.35;
       group.add(outerRing);
@@ -614,15 +652,14 @@ export default function App() {
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 2.2,
+          emissiveIntensity: 2.8, // Enhanced neon glow
           roughness: 0.1,
-          metalness: 0.3
+          metalness: 0.5
         });
 
-        // Reduced radius to 0.62 so side-by-side circular rings never intersect/overlap each other
         const radius = 0.62;
 
-        const ringGeo = new THREE.TorusGeometry(radius, 0.07, 16, 48);
+        const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
         pGroup.add(ringMesh);
 
@@ -630,15 +667,15 @@ export default function App() {
         const diskMat = new THREE.MeshBasicMaterial({ 
           color: colorHex, 
           transparent: true, 
-          opacity: 0.25, 
+          opacity: 0.32, 
           side: THREE.DoubleSide 
         });
         const diskMesh = new THREE.Mesh(diskGeo, diskMat);
         pGroup.add(diskMesh);
 
         const shard = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.2, 0),
-          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 1.5 })
+          new THREE.OctahedronGeometry(0.22, 0),
+          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2.5 })
         );
         shard.position.set(x, 1.25, 0);
         shardGroup.add(shard);
@@ -670,20 +707,20 @@ export default function App() {
     let currentThemeIdx = 0;
 
     const worldThemes = [
-      { bg: '#080a1a', grid: 0x00e5ff, curb: 0x00e5ff, sun: 0xff007f },
-      { bg: '#0f0518', grid: 0xa855f7, curb: 0xec4899, sun: 0x06b6d4 },
-      { bg: '#041511', grid: 0x10b981, curb: 0x34d399, sun: 0xfacc15 },
-      { bg: '#180a04', grid: 0xfb8500, curb: 0xffb703, sun: 0xff2a6d },
+      { bg: '#030408', grid: 0x00e5ff, curb: 0x00e5ff, sun: 0xff007f },
+      { bg: '#080214', grid: 0xa855f7, curb: 0xec4899, sun: 0x06b6d4 },
+      { bg: '#02100d', grid: 0x10b981, curb: 0x34d399, sun: 0xfacc15 },
+      { bg: '#140702', grid: 0xfb8500, curb: 0xffb703, sun: 0xff2a6d },
     ];
 
     const applyWorldTheme = (themeIdx: number) => {
       const th = worldThemes[themeIdx % worldThemes.length];
       scene.background = new THREE.Color(th.bg);
-      scene.fog = new THREE.FogExp2(th.bg, 0.016);
+      scene.fog = new THREE.FogExp2(th.bg, 0.013);
       sunMesh.material.color.setHex(th.sun);
 
       scene.remove(gridHelper);
-      gridHelper = new THREE.GridHelper(260, 65, th.grid, 0x1e294b);
+      gridHelper = new THREE.GridHelper(280, 70, th.grid, 0x151c36);
       gridHelper.position.set(0, 0.01, 0);
       scene.add(gridHelper);
 
@@ -708,17 +745,17 @@ export default function App() {
       }
 
       scene.remove(gridHelper);
-      gridHelper = new THREE.GridHelper(260, 65, 0xffcc00, 0xb45309);
+      gridHelper = new THREE.GridHelper(280, 70, 0xffcc00, 0xb45309);
       gridHelper.position.set(0, 0.01, 0);
       scene.add(gridHelper);
 
       sunMesh.material.color.setHex(0xffcc00);
-      sunMesh.material.opacity = 0.65;
+      sunMesh.material.opacity = 0.75;
 
       curbs.forEach(c => {
         (c.material as THREE.MeshStandardMaterial).color.setHex(0xffcc00);
         (c.material as THREE.MeshStandardMaterial).emissive.setHex(0xffcc00);
-        (c.material as THREE.MeshStandardMaterial).emissiveIntensity = 1.8;
+        (c.material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
       });
 
       trailMat.color.setHex(0xffcc00);
@@ -887,6 +924,14 @@ export default function App() {
       animId = requestAnimationFrame(animate);
       const dt = Math.min(0.05, (time - lastTime) / 1000);
       lastTime = time;
+
+      // Animate Dust Particle Field for Speed Effect
+      const dustPos = dustGeo.attributes.position.array as Float32Array;
+      for (let i = 2; i < dustPos.length; i += 3) {
+        dustPos[i] += speed * 1.5 * dt;
+        if (dustPos[i] > 20) dustPos[i] = -180;
+      }
+      dustGeo.attributes.position.needsUpdate = true;
 
       for (let s = shatterParticles.length - 1; s >= 0; s--) {
         const sp = shatterParticles[s];
