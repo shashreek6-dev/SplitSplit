@@ -510,8 +510,9 @@ export default function App() {
 
     const parentCoreRed = new THREE.Group();
     const parentCoreBlue = new THREE.Group();
-    parentCoreRed.position.set(LANE_CENTERS[1], 0.5, 0);
-    parentCoreBlue.position.set(LANE_CENTERS[2], 0.5, 0);
+    // Lifted player balls slightly higher up (y = 1.0)
+    parentCoreRed.position.set(LANE_CENTERS[1], 1.0, 0);
+    parentCoreBlue.position.set(LANE_CENTERS[2], 1.0, 0);
     scene.add(parentCoreRed);
     scene.add(parentCoreBlue);
 
@@ -622,7 +623,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- CLEANLY ALIGNED CIRCULAR GATES (Wider, non-intersecting outer arch) ---
+    // --- LIFTED GATES (y = 1.0 matching core height) ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -634,10 +635,10 @@ export default function App() {
         emissiveIntensity: 0.8
       });
 
-      // Increased outer arch radius to 5.3 so it frames wide overhead without touching the side portals
+      // Outer arch centered at y = 1.0
       const outerRingGeo = new THREE.TorusGeometry(5.3, 0.14, 24, 64);
       const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
-      outerRing.position.y = 0.5;
+      outerRing.position.y = 1.0;
       group.add(outerRing);
 
       const shardGroup = new THREE.Group();
@@ -673,10 +674,11 @@ export default function App() {
           new THREE.OctahedronGeometry(0.22, 0),
           new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2.5 })
         );
-        shard.position.set(x, 0.5, 0);
+        shard.position.set(x, 1.0, 0);
         shardGroup.add(shard);
 
-        pGroup.position.set(x, 0.5, 0);
+        // Portals positioned at y = 1.0
+        pGroup.position.set(x, 1.0, 0);
         return pGroup;
       };
 
@@ -859,8 +861,8 @@ export default function App() {
       currentThemeIdx = 0;
       restoreNormalAesthetics();
 
-      parentCoreRed.position.set(LANE_CENTERS[1], 0.5, 0);
-      parentCoreBlue.position.set(LANE_CENTERS[2], 0.5, 0);
+      parentCoreRed.position.set(LANE_CENTERS[1], 1.0, 0);
+      parentCoreBlue.position.set(LANE_CENTERS[2], 1.0, 0);
 
       if (window.CrazyGames?.SDK?.game) {
         window.CrazyGames.SDK.game.gameplayStop();
@@ -1032,7 +1034,7 @@ export default function App() {
                 scene.remove(gate.group);
                 localScore += 2;
                 localGatesCleared += 1;
-                spawn3DShatterExplosion(0, 0.5, 0);
+                spawn3DShatterExplosion(0, 1.0, 0);
                 playShatterHeavy();
                 if (navigator.vibrate) navigator.vibrate([25, 20, 30]);
               } else {
