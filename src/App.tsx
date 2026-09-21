@@ -510,7 +510,6 @@ export default function App() {
 
     const parentCoreRed = new THREE.Group();
     const parentCoreBlue = new THREE.Group();
-    // Lifted player balls slightly higher up (y = 1.0)
     parentCoreRed.position.set(LANE_CENTERS[1], 1.0, 0);
     parentCoreBlue.position.set(LANE_CENTERS[2], 1.0, 0);
     scene.add(parentCoreRed);
@@ -623,7 +622,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- LIFTED GATES (y = 1.0 matching core height) ---
+    // --- ALIGNED NON-INTERSECTING CIRCULAR GATES (radius = 0.52) ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -635,7 +634,6 @@ export default function App() {
         emissiveIntensity: 0.8
       });
 
-      // Outer arch centered at y = 1.0
       const outerRingGeo = new THREE.TorusGeometry(5.3, 0.14, 24, 64);
       const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
       outerRing.position.y = 1.0;
@@ -654,7 +652,8 @@ export default function App() {
           metalness: 0.5
         });
 
-        const radius = 0.62;
+        // Reduced radius to 0.52 to completely prevent side-by-side overlap
+        const radius = 0.52;
 
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
@@ -677,7 +676,6 @@ export default function App() {
         shard.position.set(x, 1.0, 0);
         shardGroup.add(shard);
 
-        // Portals positioned at y = 1.0
         pGroup.position.set(x, 1.0, 0);
         return pGroup;
       };
@@ -838,7 +836,7 @@ export default function App() {
         setTimeout(() => setTutorialHint(null), 4000);
 
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 26);
+          spawnNextGate(-i * 38);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1102,8 +1100,9 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            const safeMinSpacing = 22;
-            const spacing = Math.max(safeMinSpacing, 28 - localScore * 0.05);
+            // --- SPACED OUT RECYCLING BUFFER ---
+            const safeMinSpacing = 38;
+            const spacing = Math.max(safeMinSpacing, 44 - localScore * 0.08);
             spawnNextGate(furthestZ - spacing);
           }
         }
@@ -1211,8 +1210,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR */}
-      {isMobile && (
+      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR (ALWAYS VISIBLE, EVEN IN FEVER MODE) */}
+      {isMobile && gameState === 'PLAYING' && (
         <div id="persistent-touch-bar">
           <div className="neon-btn btn-swap" onPointerDown={() => engineRef.current?.triggerSwap()}>
             <div className="btn-label">SWAP [TAP]</div>
