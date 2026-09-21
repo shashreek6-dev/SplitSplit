@@ -126,6 +126,7 @@ export default function App() {
   const [gameState, setGameState] = useState<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   const [skins, setSkins] = useState<CosmeticItem[]>(() => {
     try {
@@ -442,6 +443,7 @@ export default function App() {
     trackFloor.position.set(0, -0.02, -50);
     scene.add(trackFloor);
 
+    // Keep environmental grid and rails locked to crisp high-contrast cyan/pink for clarity
     let gridHelper = new THREE.GridHelper(280, 70, 0x00e5ff, 0x151c36);
     gridHelper.position.set(0, 0.01, 0);
     scene.add(gridHelper);
@@ -460,15 +462,15 @@ export default function App() {
     const checkIsMobile = () => window.innerWidth <= 768;
     const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
-    [-2.0, 0.0, 2.0].forEach(lx => {
+    [-2.0, 0.0, 2.0].forEach((lx, idx) => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(lx, 0.03, 10),
         new THREE.Vector3(lx, 0.03, -130),
       ]);
       const lineMat = new THREE.LineBasicMaterial({
-        color: lx === 0 ? 0xff2a6d : 0x00e5ff,
+        color: idx === 1 ? 0xff2a6d : 0x00e5ff,
         transparent: true,
-        opacity: lx === 0 ? 0.55 : 0.3,
+        opacity: idx === 1 ? 0.6 : 0.35,
       });
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
@@ -622,7 +624,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- NON-INTERSECTING CIRCULAR GATES WITH WIDER SPACING (radius = 0.50) ---
+    // --- CIRCULAR GATES WITH LOCKED COLORS ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -652,7 +654,6 @@ export default function App() {
           metalness: 0.5
         });
 
-        // Safe radius to prevent side-by-side overlap on narrow mobile screens
         const radius = 0.50;
 
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
@@ -700,10 +701,10 @@ export default function App() {
     let currentThemeIdx = 0;
 
     const worldThemes = [
-      { bg: '#030408', grid: 0x00e5ff, curb: 0x00e5ff, sun: 0xff007f },
-      { bg: '#080214', grid: 0xa855f7, curb: 0xec4899, sun: 0x06b6d4 },
-      { bg: '#02100d', grid: 0x10b981, curb: 0x34d399, sun: 0xfacc15 },
-      { bg: '#140702', grid: 0xfb8500, curb: 0xffb703, sun: 0xff2a6d },
+      { bg: '#030408', sun: 0xff007f },
+      { bg: '#080214', sun: 0x06b6d4 },
+      { bg: '#02100d', sun: 0xfacc15 },
+      { bg: '#140702', sun: 0xff2a6d },
     ];
 
     const applyWorldTheme = (themeIdx: number) => {
@@ -711,16 +712,6 @@ export default function App() {
       scene.background = new THREE.Color(th.bg);
       scene.fog = new THREE.FogExp2(th.bg, 0.013);
       sunMesh.material.color.setHex(th.sun);
-
-      scene.remove(gridHelper);
-      gridHelper = new THREE.GridHelper(280, 70, th.grid, 0x151c36);
-      gridHelper.position.set(0, 0.01, 0);
-      scene.add(gridHelper);
-
-      curbs.forEach(c => {
-        (c.material as THREE.MeshStandardMaterial).color.setHex(th.curb);
-        (c.material as THREE.MeshStandardMaterial).emissive.setHex(th.curb);
-      });
     };
 
     const triggerFeverOverdrive = () => {
@@ -737,20 +728,8 @@ export default function App() {
         setTimeout(() => flashEl.classList.remove('flash'), 450);
       }
 
-      scene.remove(gridHelper);
-      gridHelper = new THREE.GridHelper(280, 70, 0xffcc00, 0xb45309);
-      gridHelper.position.set(0, 0.01, 0);
-      scene.add(gridHelper);
-
       sunMesh.material.color.setHex(0xffcc00);
       sunMesh.material.opacity = 0.75;
-
-      curbs.forEach(c => {
-        (c.material as THREE.MeshStandardMaterial).color.setHex(0xffcc00);
-        (c.material as THREE.MeshStandardMaterial).emissive.setHex(0xffcc00);
-        (c.material as THREE.MeshStandardMaterial).emissiveIntensity = 2.5;
-      });
-
       trailMat.color.setHex(0xffcc00);
 
       if (window.CrazyGames?.SDK?.game) {
@@ -835,7 +814,6 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
-        // Generous separation distance so gates never touch or intersect
         for (let i = 1; i <= 5; i++) {
           spawnNextGate(-i * 45);
         }
@@ -1070,10 +1048,17 @@ export default function App() {
                     triggerFeverOverdrive();
                   }
                 } else {
+                  // Telegraphic crash feedback: Flash red overlay immediately
+                  const flashEl = document.getElementById('fever-flash-fx');
+                  if (flashEl) {
+                    flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 42, 109, 0.8) 0%, rgba(255, 0, 0, 0.5) 70%)';
+                    flashEl.classList.add('flash');
+                  }
+
                   gameStateRef.current = 'GAMEOVER';
                   setGameState('GAMEOVER');
                   playDeathImpact();
-                  if (navigator.vibrate) navigator.vibrate([50, 40, 70]);
+                  if (navigator.vibrate) navigator.vibrate([60, 50, 90]);
 
                   setBestScore(prev => {
                     const next = Math.max(prev, localScore);
@@ -1101,7 +1086,6 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            // Safe minimum spacing buffer to completely prevent gate-to-gate collisions
             const safeMinSpacing = 42;
             const spacing = Math.max(safeMinSpacing, 50 - localScore * 0.1);
             spawnNextGate(furthestZ - spacing);
@@ -1211,7 +1195,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR (ALWAYS VISIBLE, LIFTED FOR CLEANER UI) */}
+      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR */}
       {isMobile && gameState === 'PLAYING' && (
         <div id="persistent-touch-bar">
           <div className="neon-btn btn-swap" onPointerDown={() => engineRef.current?.triggerSwap()}>
@@ -1247,14 +1231,18 @@ export default function App() {
               CUSTOMIZE CORES
             </button>
 
+            <button className="cyber-secondary-btn" style={{ borderColor: 'rgba(255, 204, 0, 0.4)', color: '#ffcc00' }} onClick={() => setIsHelpOpen(true)}>
+              HOW TO PLAY
+            </button>
+
             <div className="controls-hint-row">
               {isMobile ? (
                 <span>TAP BOTTOM BUTTONS TO SWAP / SPREAD</span>
               ) : (
                 <>
-                  <span><span className="keycap">A</span> or <span className="keycap">Q</span> SWAP</span>
+                  <span><span className="keycap">A</span> / <span className="keycap">Q</span> SWAP</span>
                   <span>•</span>
-                  <span><span className="keycap">D</span> or <span className="keycap">SPACE</span> SPREAD</span>
+                  <span><span className="keycap">D</span> / <span className="keycap">SPACE</span> SPREAD</span>
                 </>
               )}
             </div>
@@ -1322,6 +1310,41 @@ export default function App() {
                 MAIN MENU
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* HOW TO PLAY INSTRUCTIONS MODAL */}
+      {isHelpOpen && (
+        <div className="modal-overlay">
+          <div className="cyber-panel-card" style={{ maxWidth: 480 }}>
+            <div className="brand-hero-title" style={{ fontSize: 28 }}>HOW TO PLAY</div>
+            <div className="brand-hero-sub">NEURAL LINK GUIDE</div>
+
+            <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14, margin: '10px 0 20px 0', color: '#cbd5e1', fontSize: 13.5, lineHeight: 1.5, textAlign: 'left' }}>
+              <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <strong style={{ color: '#00e5ff', display: 'block', marginBottom: 4 }}>🎯 OBJECTIVE</strong>
+                Match your dual cores to the correct incoming colored portal rings. Clear gates to build your score and fill your Fever gauge.
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <strong style={{ color: '#ff2a6d', display: 'block', marginBottom: 4 }}>🎮 CONTROLS ({isMobile ? 'MOBILE' : 'DESKTOP'})</strong>
+                {isMobile ? (
+                  <span>• <b>SWAP [TAP]:</b> Inverts your core positions instantly.<br />• <b>SPREAD [HOLD/TAP]:</b> Toggles wide or narrow lane formation.</span>
+                ) : (
+                  <span>• <b>SWAP:</b> Press <span className="keycap">A</span>, <span className="keycap">Q</span>, or <span className="keycap">←</span>.<br />• <b>SPREAD:</b> Press <span className="keycap">D</span>, <span className="keycap">→</span>, or <span className="keycap">SPACE</span>.</span>
+                )}
+              </div>
+
+              <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
+                <strong style={{ color: '#ffcc00', display: 'block', marginBottom: 4 }}>⚡ FEVER OVERDRIVE</strong>
+                Filling your gauge triggers Overdrive mode, doubling points and letting you smash straight through incoming gates automatically!
+              </div>
+            </div>
+
+            <button className="cyber-play-btn" style={{ padding: '14px 20px', fontSize: 15 }} onClick={() => setIsHelpOpen(false)}>
+              GOT IT
+            </button>
           </div>
         </div>
       )}
