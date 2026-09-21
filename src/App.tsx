@@ -622,7 +622,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- ALIGNED NON-INTERSECTING CIRCULAR GATES (radius = 0.52) ---
+    // --- NON-INTERSECTING CIRCULAR GATES WITH WIDER SPACING (radius = 0.50) ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -652,8 +652,8 @@ export default function App() {
           metalness: 0.5
         });
 
-        // Reduced radius to 0.52 to completely prevent side-by-side overlap
-        const radius = 0.52;
+        // Safe radius to prevent side-by-side overlap on narrow mobile screens
+        const radius = 0.50;
 
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
@@ -835,8 +835,9 @@ export default function App() {
         setTutorialHint(isMobile ? 'TAP SWAP OR SPREAD TO SHIFT CORES' : 'SWAP: [A] / [Q] / [LEFT] • SPREAD: [D] / [RIGHT]');
         setTimeout(() => setTutorialHint(null), 4000);
 
+        // Generous separation distance so gates never touch or intersect
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 38);
+          spawnNextGate(-i * 45);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -1100,9 +1101,9 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            // --- SPACED OUT RECYCLING BUFFER ---
-            const safeMinSpacing = 38;
-            const spacing = Math.max(safeMinSpacing, 44 - localScore * 0.08);
+            // Safe minimum spacing buffer to completely prevent gate-to-gate collisions
+            const safeMinSpacing = 42;
+            const spacing = Math.max(safeMinSpacing, 50 - localScore * 0.1);
             spawnNextGate(furthestZ - spacing);
           }
         }
@@ -1210,7 +1211,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR (ALWAYS VISIBLE, EVEN IN FEVER MODE) */}
+      {/* PERSISTENT MOBILE THUMB-ZONE TOUCH BAR (ALWAYS VISIBLE, LIFTED FOR CLEANER UI) */}
       {isMobile && gameState === 'PLAYING' && (
         <div id="persistent-touch-bar">
           <div className="neon-btn btn-swap" onPointerDown={() => engineRef.current?.triggerSwap()}>

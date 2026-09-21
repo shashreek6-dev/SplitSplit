@@ -252,13 +252,13 @@ html, body, #root {
   margin-top: 4px;
 }
 
-/* Persistent Mobile Touch Bar outside the animated HUD */
+/* Improved Persistent Mobile Touch Bar (Lifted & Glowing) */
 #persistent-touch-bar {
   position: fixed;
-  bottom: 12px;
-  left: 12px;
-  right: 12px;
-  width: calc(100% - 24px);
+  bottom: 24px;
+  left: 14px;
+  right: 14px;
+  width: calc(100% - 28px);
   display: flex;
   justify-content: space-between;
   gap: 16px;
@@ -268,9 +268,9 @@ html, body, #root {
 
 #persistent-touch-bar .neon-btn {
   flex: 1;
-  height: 64px;
+  height: 68px;
   border-radius: 20px;
-  background: rgba(14, 18, 36, 0.96);
+  background: rgba(12, 16, 34, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   display: flex;
@@ -279,22 +279,22 @@ html, body, #root {
   justify-content: center;
   cursor: pointer;
   touch-action: manipulation;
-  transition: transform 0.06s ease;
+  transition: transform 0.06s ease, box-shadow 0.15s ease;
   padding: 0 8px;
 }
 
 #persistent-touch-bar .neon-btn:active {
-  transform: scale(0.93);
+  transform: scale(0.94);
 }
 
 .btn-swap {
-  border: 2px solid rgba(255, 42, 109, 0.85);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(255, 42, 109, 0.9);
+  box-shadow: 0 8px 30px rgba(255, 42, 109, 0.3);
 }
 
 .btn-spread {
-  border: 2px solid rgba(0, 229, 255, 0.85);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  border: 2px solid rgba(0, 229, 255, 0.9);
+  box-shadow: 0 8px 30px rgba(0, 229, 255, 0.3);
 }
 
 .btn-label {
@@ -607,7 +607,7 @@ html, body, #root {
 
 @media (max-width: 768px) {
   .hud-layer {
-    padding: 12px 10px 16px 10px !important;
+    padding: 10px 10px 12px 10px !important;
   }
 
   .pill-card {
@@ -641,8 +641,8 @@ html, body, #root {
   }
 
   .onboarding-hint-banner {
-    top: 60px !important;
-    font-size: 8.5px !important;
+    top: 54px !important;
+    font-size: 8px !important;
     padding: 4px 10px !important;
   }
 }
