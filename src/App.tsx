@@ -489,7 +489,6 @@ export default function App() {
       });
     }
 
-    // Reduced dust count for cleaner look
     const dustCount = 35;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
@@ -569,7 +568,6 @@ export default function App() {
       parentCoreBlue.add(blueMeshInstance.group);
     };
 
-    // Reduced trail particles for a cleaner look
     const maxParticles = 22;
     const trailGeo = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(maxParticles * 3 * 2);
@@ -624,7 +622,7 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- ALIGNED CIRCULAR GATES (Height y=0.5 matching core path) ---
+    // --- CLEANLY ALIGNED CIRCULAR GATES (Wider, non-intersecting outer arch) ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -636,8 +634,8 @@ export default function App() {
         emissiveIntensity: 0.8
       });
 
-      // Outer ring aligned at y = 0.5 to frame the balls properly
-      const outerRingGeo = new THREE.TorusGeometry(3.6, 0.14, 24, 64);
+      // Increased outer arch radius to 5.3 so it frames wide overhead without touching the side portals
+      const outerRingGeo = new THREE.TorusGeometry(5.3, 0.14, 24, 64);
       const outerRing = new THREE.Mesh(outerRingGeo, frameMat);
       outerRing.position.y = 0.5;
       group.add(outerRing);
@@ -678,7 +676,6 @@ export default function App() {
         shard.position.set(x, 0.5, 0);
         shardGroup.add(shard);
 
-        // Position portals exactly at y = 0.5 to align with core path
         pGroup.position.set(x, 0.5, 0);
         return pGroup;
       };
