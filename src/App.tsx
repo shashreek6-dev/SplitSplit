@@ -43,7 +43,7 @@ const COSMETIC_CATALOG: CosmeticItem[] = [
   { id: 'chrono_prism', name: 'Chrono Prism', archetype: 'Refractive Gem', cost: 75, unlocked: false, colorA: 0xa855f7, colorB: 0x06b6d4, geoShape: 'prism' },
   { id: 'bio_hazard', name: 'Bio-Flux', archetype: 'Radioactive Core', cost: 130, unlocked: false, colorA: 0x10b981, colorB: 0xfacc15, geoShape: 'hazard' },
   { id: 'void_singularity', name: 'Void Singularity', archetype: 'Gravitational Node', cost: 200, unlocked: false, colorA: 0x6366f1, colorB: 0x8b5cf6, geoShape: 'blackhole' },
-  { id: 'solar_sovereign', name: 'Solar Sovereign', archetype: 'Celestial Nova', cost: 320, unlocked: false, colorA: 0xffb703, colorB: 0xfb8500, geoShape: 'solar' },
+  { id: 'solar_sovereign', name: 'Solar Sovereign', archetype: 'Celestial Nova', cost: 320, unlocked: false, colorA: 0xffd700, colorB: 0xff4500, geoShape: 'solar' }, // High-contrast core colors
 ];
 
 function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: number; colorB: number }) {
@@ -443,7 +443,6 @@ export default function App() {
     trackFloor.position.set(0, -0.02, -50);
     scene.add(trackFloor);
 
-    // Keep environmental grid and rails locked to crisp high-contrast cyan/pink for clarity
     let gridHelper = new THREE.GridHelper(280, 70, 0x00e5ff, 0x151c36);
     gridHelper.position.set(0, 0.01, 0);
     scene.add(gridHelper);
@@ -724,6 +723,7 @@ export default function App() {
 
       const flashEl = document.getElementById('fever-flash-fx');
       if (flashEl) {
+        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.45) 0%, rgba(255, 42, 109, 0.2) 60%, transparent 80%)';
         flashEl.classList.add('flash');
         setTimeout(() => flashEl.classList.remove('flash'), 450);
       }
@@ -789,6 +789,13 @@ export default function App() {
       initAudio();
       setIsTransitioning(true);
 
+      // Clear any remaining death flash overlay immediately on reset
+      const flashEl = document.getElementById('fever-flash-fx');
+      if (flashEl) {
+        flashEl.classList.remove('flash');
+        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.45) 0%, rgba(255, 42, 109, 0.2) 60%, transparent 80%)';
+      }
+
       setTimeout(() => {
         gates.forEach(g => scene.remove(g.group));
         gates.length = 0;
@@ -825,6 +832,12 @@ export default function App() {
     };
 
     const goToMainMenu = () => {
+      const flashEl = document.getElementById('fever-flash-fx');
+      if (flashEl) {
+        flashEl.classList.remove('flash');
+        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.45) 0%, rgba(255, 42, 109, 0.2) 60%, transparent 80%)';
+      }
+
       gates.forEach(g => scene.remove(g.group));
       gates.length = 0;
       shatterParticles.forEach(p => scene.remove(p.mesh));
@@ -848,6 +861,12 @@ export default function App() {
 
     const revivePlayer = () => {
       initAudio();
+      const flashEl = document.getElementById('fever-flash-fx');
+      if (flashEl) {
+        flashEl.classList.remove('flash');
+        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.45) 0%, rgba(255, 42, 109, 0.2) 60%, transparent 80%)';
+      }
+
       gates.forEach(g => {
         if (g.z > -18 && g.z < 12) {
           scene.remove(g.group);
@@ -1048,7 +1067,6 @@ export default function App() {
                     triggerFeverOverdrive();
                   }
                 } else {
-                  // Telegraphic crash feedback: Flash red overlay immediately
                   const flashEl = document.getElementById('fever-flash-fx');
                   if (flashEl) {
                     flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 42, 109, 0.8) 0%, rgba(255, 0, 0, 0.5) 70%)';
