@@ -39,11 +39,11 @@ interface CosmeticItem {
 
 const COSMETIC_CATALOG: CosmeticItem[] = [
   { id: 'neon_classic', name: 'Cyber Neon', archetype: 'Standard Dual Core', cost: 0, unlocked: true, colorA: 0xff2a6d, colorB: 0x00e5ff, geoShape: 'sphere' },
-  { id: 'plasma_pulsar', name: 'Plasma Pulsar', archetype: 'Ionic Resonance', cost: 35, unlocked: false, colorA: 0x7c3aed, colorB: 0x22c55e, geoShape: 'icosa' },
-  { id: 'chrono_prism', name: 'Chrono Prism', archetype: 'Refractive Gem', cost: 75, unlocked: false, colorA: 0x3b82f6, colorB: 0xf59e0b, geoShape: 'prism' },
-  { id: 'bio_hazard', name: 'Bio-Flux', archetype: 'Radioactive Core', cost: 130, unlocked: false, colorA: 0x10b981, colorB: 0xec4899, geoShape: 'hazard' },
-  { id: 'void_singularity', name: 'Void Singularity', archetype: 'Gravitational Node', cost: 200, unlocked: false, colorA: 0x6366f1, colorB: 0xeab308, geoShape: 'blackhole' },
-  { id: 'solar_sovereign', name: 'Solar Sovereign', archetype: 'Celestial Nova', cost: 320, unlocked: false, colorA: 0xdc2626, colorB: 0x06b6d4, geoShape: 'solar' },
+  { id: 'plasma_pulsar', name: 'Plasma Pulsar', archetype: 'Ionic Resonance', cost: 35, unlocked: false, colorA: 0xa855f7, colorB: 0x22c55e, geoShape: 'icosa' },
+  { id: 'chrono_prism', name: 'Chrono Prism', archetype: 'Refractive Gem', cost: 75, unlocked: false, colorA: 0x3b82f6, colorB: 0xfacc15, geoShape: 'prism' },
+  { id: 'bio_hazard', name: 'Bio-Flux', archetype: 'Radioactive Core', cost: 130, unlocked: false, colorA: 0x10b981, colorB: 0xff6b00, geoShape: 'hazard' },
+  { id: 'void_singularity', name: 'Void Singularity', archetype: 'Gravitational Node', cost: 200, unlocked: false, colorA: 0x6366f1, colorB: 0xffffff, geoShape: 'blackhole' },
+  { id: 'solar_sovereign', name: 'Solar Sovereign', archetype: 'Celestial Nova', cost: 320, unlocked: false, colorA: 0xff4500, colorB: 0xffea00, geoShape: 'solar' },
 ];
 
 function ArchetypeMeshIcon({ shape, colorA, colorB }: { shape: string; colorA: number; colorB: number }) {
