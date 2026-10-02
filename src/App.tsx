@@ -402,7 +402,7 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- THREE.SCENE & MULTIPLE DISTINCT PLANETS SETUP ---
+    // --- THREE.SCENE & ANIMATED MULTI-PLANETARY COSMOS ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030408');
     scene.fog = new THREE.FogExp2('#030408', 0.007);
@@ -425,53 +425,65 @@ export default function App() {
     renderer.toneMappingExposure = 1.45;
     mountRef.current.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xdbeafe, 0.9));
-    const mainLight = new THREE.DirectionalLight(0xfffaed, 1.8);
-    mainLight.position.set(12, 32, 18);
+    scene.add(new THREE.AmbientLight(0xdbeafe, 1.0));
+    const mainLight = new THREE.DirectionalLight(0xfffaed, 2.0);
+    mainLight.position.set(15, 35, 20);
     scene.add(mainLight);
 
-    // MULTIPLE PLANETS & CELESTIAL BODIES SPREAD ACROSS HORIZONS
-    const planetGroup1 = new THREE.Group();
-    planetGroup1.position.set(-42, 16, -160);
-    const planet1 = new THREE.Mesh(
-      new THREE.SphereGeometry(16, 32, 32),
-      new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.3, roughness: 0.4 })
-    );
-    planetGroup1.add(planet1);
-    const ring1 = new THREE.Mesh(
-      new THREE.TorusGeometry(24, 1.2, 16, 48),
-      new THREE.MeshStandardMaterial({ color: 0x60a5fa, emissive: 0x38bdf8, emissiveIntensity: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
-    );
-    ring1.rotation.x = Math.PI / 3;
-    planetGroup1.add(ring1);
-    scene.add(planetGroup1);
+    // RICH ANIMATED PLANETARY HORIZON SYSTEM (6 Distinct Planets/Moons/Orbs)
+    const cosmosGroup = new THREE.Group();
+    scene.add(cosmosGroup);
 
-    const planetGroup2 = new THREE.Group();
-    planetGroup2.position.set(45, 28, -220);
-    const planet2 = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(18, 1),
-      new THREE.MeshStandardMaterial({ color: 0xff2a6d, emissive: 0xff0055, emissiveIntensity: 0.5, roughness: 0.2, wireframe: true })
+    const planet1Group = new THREE.Group();
+    planet1Group.position.set(-50, 18, -180);
+    const planet1Mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(18, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.4, roughness: 0.3 })
     );
-    planetGroup2.add(planet2);
-    scene.add(planetGroup2);
+    planet1Group.add(planet1Mesh);
+    const ring1Mesh = new THREE.Mesh(
+      new THREE.TorusGeometry(26, 1.5, 16, 48),
+      new THREE.MeshStandardMaterial({ color: 0x60a5fa, emissive: 0x38bdf8, emissiveIntensity: 0.8, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
+    );
+    ring1Mesh.rotation.x = Math.PI / 3;
+    planet1Group.add(ring1Mesh);
+    cosmosGroup.add(planet1Group);
 
-    const planetGroup3 = new THREE.Group();
-    planetGroup3.position.set(-25, 42, -280);
-    const planet3 = new THREE.Mesh(
-      new THREE.SphereGeometry(12, 32, 32),
-      new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.4, roughness: 0.5 })
+    const planet2Group = new THREE.Group();
+    planet2Group.position.set(52, 32, -240);
+    const planet2Mesh = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(22, 1),
+      new THREE.MeshStandardMaterial({ color: 0xff2a6d, emissive: 0xff0055, emissiveIntensity: 0.6, roughness: 0.2, wireframe: true })
     );
-    planetGroup3.add(planet3);
-    scene.add(planetGroup3);
+    planet2Group.add(planet2Mesh);
+    cosmosGroup.add(planet2Group);
 
-    const planetGroup4 = new THREE.Group();
-    planetGroup4.position.set(28, 12, -190);
-    const planet4 = new THREE.Mesh(
-      new THREE.DodecahedronGeometry(14, 0),
-      new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.6, roughness: 0.3 })
+    const planet3Group = new THREE.Group();
+    planet3Group.position.set(-28, 48, -310);
+    const planet3Mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(14, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.5, roughness: 0.4 })
     );
-    planetGroup4.add(planet4);
-    scene.add(planetGroup4);
+    planet3Group.add(planet3Mesh);
+    cosmosGroup.add(planet3Group);
+
+    const planet4Group = new THREE.Group();
+    planet4Group.position.set(32, 14, -200);
+    const planet4Mesh = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(15, 0),
+      new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.7, roughness: 0.3 })
+    );
+    planet4Group.add(planet4Mesh);
+    cosmosGroup.add(planet4Group);
+
+    const planet5Group = new THREE.Group();
+    planet5Group.position.set(0, 60, -380);
+    const planet5Mesh = new THREE.Mesh(
+      new THREE.SphereGeometry(28, 32, 32),
+      new THREE.MeshStandardMaterial({ color: 0x8b5cf6, emissive: 0x6d28d9, emissiveIntensity: 0.6, roughness: 0.2 })
+    );
+    planet5Group.add(planet5Mesh);
+    cosmosGroup.add(planet5Group);
 
     const trackFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(10.5, 300),
@@ -507,20 +519,20 @@ export default function App() {
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
 
-    const dustCount = 80;
+    const dustCount = 90;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
-      dustPositions[i] = (Math.random() - 0.5) * 50;
-      dustPositions[i + 1] = Math.random() * 30;
-      dustPositions[i + 2] = (Math.random() - 0.5) * 240;
+      dustPositions[i] = (Math.random() - 0.5) * 60;
+      dustPositions[i + 1] = Math.random() * 35;
+      dustPositions[i + 2] = (Math.random() - 0.5) * 260;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustMat = new THREE.PointsMaterial({
-      size: 0.22,
+      size: 0.25,
       color: 0x00ffff,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending
     });
     const dustField = new THREE.Points(dustGeo, dustMat);
@@ -717,12 +729,12 @@ export default function App() {
     let currentThemeIdx = 0;
     let lastInputTime = 0;
 
-    // DISTINCT THEMED WORLDS BASED ON NAMES & COLORS
+    // HIGHLY DETAILED WORLD THEMES WITH UNIQUE COLOR PALETTES
     const worldThemes = [
-      { name: 'DEEP SPACE NEBULA', bg: '#030408', floor: 0x070914, grid: 0x00e5ff, p1: 0x3b82f6, p2: 0xff2a6d },
-      { name: 'CYBER GRID ARCADE', bg: '#080214', floor: 0x120326, grid: 0xa855f7, p1: 0x8b5cf6, p2: 0x06b6d4 },
-      { name: 'BIOLUMINESCENT JUNGLE', bg: '#02100d', floor: 0x03201a, grid: 0x10b981, p1: 0x10b981, p2: 0xfacc15 },
-      { name: 'SOLAR NOVA', bg: '#140702', floor: 0x2b0d03, grid: 0xff4500, p1: 0xff4500, p2: 0xa855f7 },
+      { name: 'DEEP SPACE NEBULA', bg: '#030408', floor: 0x070914, grid: 0x00e5ff, p1: 0x3b82f6, p2: 0xff2a6d, p3: 0x10b981 },
+      { name: 'CYBER GRID ARCADE', bg: '#080214', floor: 0x120326, grid: 0xa855f7, p1: 0x8b5cf6, p2: 0x06b6d4, p3: 0xfacc15 },
+      { name: 'BIOLUMINESCENT JUNGLE', bg: '#02100d', floor: 0x03201a, grid: 0x10b981, p1: 0x10b981, p2: 0xfacc15, p3: 0x06b6d4 },
+      { name: 'SOLAR NOVA', bg: '#140702', floor: 0x2b0d03, grid: 0xff4500, p1: 0xff4500, p2: 0xa855f7, p3: 0xfacc15 },
     ];
 
     const applyWorldTheme = (themeIdx: number) => {
@@ -736,8 +748,9 @@ export default function App() {
       gridHelper.position.set(0, 0.01, 0);
       scene.add(gridHelper);
 
-      (planet1.material as THREE.MeshStandardMaterial).color.setHex(th.p1);
-      (planet2.material as THREE.MeshStandardMaterial).color.setHex(th.p2);
+      (planet1Mesh.material as THREE.MeshStandardMaterial).color.setHex(th.p1);
+      (planet2Mesh.material as THREE.MeshStandardMaterial).color.setHex(th.p2);
+      (planet3Mesh.material as THREE.MeshStandardMaterial).color.setHex(th.p3);
     };
 
     const triggerFeverOverdrive = () => {
@@ -960,16 +973,20 @@ export default function App() {
         camera.position.y += (3.2 - camera.position.y) * 0.1;
       }
 
-      // Rotate all background planets
-      planetGroup1.rotation.y += dt * 0.1;
-      planetGroup2.rotation.y -= dt * 0.15;
-      planetGroup3.rotation.y += dt * 0.08;
-      planetGroup4.rotation.y -= dt * 0.12;
+      // Smooth animated orbital rotation and bobbing for all planets
+      planet1Group.rotation.y += dt * 0.12;
+      planet2Group.rotation.y -= dt * 0.18;
+      planet3Group.rotation.y += dt * 0.1;
+      planet4Group.rotation.y -= dt * 0.14;
+      planet5Group.rotation.y += dt * 0.08;
+
+      planet1Group.position.y = 18 + Math.sin(time * 0.001) * 2;
+      planet2Group.position.y = 32 + Math.cos(time * 0.0012) * 2.5;
 
       const dustPos = dustGeo.attributes.position.array as Float32Array;
       for (let i = 2; i < dustPos.length; i += 3) {
         dustPos[i] += speed * 1.5 * dt;
-        if (dustPos[i] > 20) dustPos[i] = -240;
+        if (dustPos[i] > 20) dustPos[i] = -260;
       }
       dustGeo.attributes.position.needsUpdate = true;
 
