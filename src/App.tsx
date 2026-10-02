@@ -402,10 +402,10 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- THREE.SCENE & DEEP SPACE PLANETARY HORIZON SETUP ---
+    // --- THREE.SCENE & MULTIPLE DISTINCT PLANETS SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030408');
-    scene.fog = new THREE.FogExp2('#030408', 0.008);
+    scene.fog = new THREE.FogExp2('#030408', 0.007);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 24.0, 75.0);
@@ -430,46 +430,48 @@ export default function App() {
     mainLight.position.set(12, 32, 18);
     scene.add(mainLight);
 
-    // BACKGROUND PLANETS & CELESTIAL BODIES (Safely positioned on the horizon)
-    const backgroundGroup = new THREE.Group();
-    scene.add(backgroundGroup);
-
-    // Planet 1: Large Ringed Gas Giant on the left horizon
+    // MULTIPLE PLANETS & CELESTIAL BODIES SPREAD ACROSS HORIZONS
     const planetGroup1 = new THREE.Group();
-    planetGroup1.position.set(-38, 18, -180);
-    const planetMesh1 = new THREE.Mesh(
-      new THREE.SphereGeometry(18, 32, 32),
+    planetGroup1.position.set(-42, 16, -160);
+    const planet1 = new THREE.Mesh(
+      new THREE.SphereGeometry(16, 32, 32),
       new THREE.MeshStandardMaterial({ color: 0x3b82f6, emissive: 0x1d4ed8, emissiveIntensity: 0.3, roughness: 0.4 })
     );
-    planetGroup1.add(planetMesh1);
-
-    const ringMesh1 = new THREE.Mesh(
-      new THREE.TorusGeometry(26, 1.5, 16, 48),
+    planetGroup1.add(planet1);
+    const ring1 = new THREE.Mesh(
+      new THREE.TorusGeometry(24, 1.2, 16, 48),
       new THREE.MeshStandardMaterial({ color: 0x60a5fa, emissive: 0x38bdf8, emissiveIntensity: 0.6, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
     );
-    ringMesh1.rotation.x = Math.PI / 3;
-    planetGroup1.add(ringMesh1);
-    backgroundGroup.add(planetGroup1);
+    ring1.rotation.x = Math.PI / 3;
+    planetGroup1.add(ring1);
+    scene.add(planetGroup1);
 
-    // Planet 2: Glowing Neon Sundog / Crystalline Planet on the right horizon
     const planetGroup2 = new THREE.Group();
-    planetGroup2.position.set(42, 28, -240);
-    const planetMesh2 = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(22, 1),
+    planetGroup2.position.set(45, 28, -220);
+    const planet2 = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(18, 1),
       new THREE.MeshStandardMaterial({ color: 0xff2a6d, emissive: 0xff0055, emissiveIntensity: 0.5, roughness: 0.2, wireframe: true })
     );
-    planetGroup2.add(planetMesh2);
-    backgroundGroup.add(planetGroup2);
+    planetGroup2.add(planet2);
+    scene.add(planetGroup2);
 
-    // Planet 3: Distant Bioluminescent Emerald World
     const planetGroup3 = new THREE.Group();
-    planetGroup3.position.set(12, 45, -300);
-    const planetMesh3 = new THREE.Mesh(
-      new THREE.SphereGeometry(14, 32, 32),
+    planetGroup3.position.set(-25, 42, -280);
+    const planet3 = new THREE.Mesh(
+      new THREE.SphereGeometry(12, 32, 32),
       new THREE.MeshStandardMaterial({ color: 0x10b981, emissive: 0x059669, emissiveIntensity: 0.4, roughness: 0.5 })
     );
-    planetGroup3.add(planetMesh3);
-    backgroundGroup.add(planetGroup3);
+    planetGroup3.add(planet3);
+    scene.add(planetGroup3);
+
+    const planetGroup4 = new THREE.Group();
+    planetGroup4.position.set(28, 12, -190);
+    const planet4 = new THREE.Mesh(
+      new THREE.DodecahedronGeometry(14, 0),
+      new THREE.MeshStandardMaterial({ color: 0xfacc15, emissive: 0xca8a04, emissiveIntensity: 0.6, roughness: 0.3 })
+    );
+    planetGroup4.add(planet4);
+    scene.add(planetGroup4);
 
     const trackFloor = new THREE.Mesh(
       new THREE.PlaneGeometry(10.5, 300),
@@ -505,13 +507,13 @@ export default function App() {
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
 
-    const dustCount = 70;
+    const dustCount = 80;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
-      dustPositions[i] = (Math.random() - 0.5) * 45;
-      dustPositions[i + 1] = Math.random() * 25;
-      dustPositions[i + 2] = (Math.random() - 0.5) * 220;
+      dustPositions[i] = (Math.random() - 0.5) * 50;
+      dustPositions[i + 1] = Math.random() * 30;
+      dustPositions[i + 2] = (Math.random() - 0.5) * 240;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustMat = new THREE.PointsMaterial({
@@ -715,20 +717,27 @@ export default function App() {
     let currentThemeIdx = 0;
     let lastInputTime = 0;
 
+    // DISTINCT THEMED WORLDS BASED ON NAMES & COLORS
     const worldThemes = [
-      { bg: '#030408', p1: 0x3b82f6, p2: 0xff2a6d },
-      { bg: '#080214', p1: 0x8b5cf6, p2: 0x06b6d4 },
-      { bg: '#02100d', p1: 0x10b981, p2: 0xfacc15 },
-      { bg: '#140702', p1: 0xff4500, p2: 0xa855f7 },
+      { name: 'DEEP SPACE NEBULA', bg: '#030408', floor: 0x070914, grid: 0x00e5ff, p1: 0x3b82f6, p2: 0xff2a6d },
+      { name: 'CYBER GRID ARCADE', bg: '#080214', floor: 0x120326, grid: 0xa855f7, p1: 0x8b5cf6, p2: 0x06b6d4 },
+      { name: 'BIOLUMINESCENT JUNGLE', bg: '#02100d', floor: 0x03201a, grid: 0x10b981, p1: 0x10b981, p2: 0xfacc15 },
+      { name: 'SOLAR NOVA', bg: '#140702', floor: 0x2b0d03, grid: 0xff4500, p1: 0xff4500, p2: 0xa855f7 },
     ];
 
     const applyWorldTheme = (themeIdx: number) => {
       const th = worldThemes[themeIdx % worldThemes.length];
       scene.background = new THREE.Color(th.bg);
-      scene.fog = new THREE.FogExp2(th.bg, 0.008);
+      scene.fog = new THREE.FogExp2(th.bg, 0.007);
       
-      (planetMesh1.material as THREE.MeshStandardMaterial).color.setHex(th.p1);
-      (planetMesh2.material as THREE.MeshStandardMaterial).color.setHex(th.p2);
+      (trackFloor.material as THREE.MeshStandardMaterial).color.setHex(th.floor);
+      scene.remove(gridHelper);
+      gridHelper = new THREE.GridHelper(300, 75, th.grid, th.grid === 0x00e5ff ? 0x151c36 : 0x2d1b4e);
+      gridHelper.position.set(0, 0.01, 0);
+      scene.add(gridHelper);
+
+      (planet1.material as THREE.MeshStandardMaterial).color.setHex(th.p1);
+      (planet2.material as THREE.MeshStandardMaterial).color.setHex(th.p2);
     };
 
     const triggerFeverOverdrive = () => {
@@ -951,15 +960,16 @@ export default function App() {
         camera.position.y += (3.2 - camera.position.y) * 0.1;
       }
 
-      // Rotate background planets gracefully
+      // Rotate all background planets
       planetGroup1.rotation.y += dt * 0.1;
       planetGroup2.rotation.y -= dt * 0.15;
       planetGroup3.rotation.y += dt * 0.08;
+      planetGroup4.rotation.y -= dt * 0.12;
 
       const dustPos = dustGeo.attributes.position.array as Float32Array;
       for (let i = 2; i < dustPos.length; i += 3) {
         dustPos[i] += speed * 1.5 * dt;
-        if (dustPos[i] > 20) dustPos[i] = -220;
+        if (dustPos[i] > 20) dustPos[i] = -240;
       }
       dustGeo.attributes.position.needsUpdate = true;
 
@@ -1092,17 +1102,14 @@ export default function App() {
                     return next;
                   });
 
-                  if (localScore % 10 === 0) {
+                  if (localScore > 0 && localScore % 10 === 0) {
                     currentThemeIdx = (currentThemeIdx + 1) % worldThemes.length;
-                    if (!isFeverRef.current) applyWorldTheme(currentThemeIdx);
-                  }
-
-                  if (localScore === 10) {
-                    setMilestone({ title: 'HYPER VELOCITY', sub: 'WORLD THEME SHIFTED' });
-                    setTimeout(() => setMilestone(null), 1800);
-                  } else if (localScore === 25) {
-                    setMilestone({ title: 'NEURAL MASTER', sub: 'COMBO STREAK ACTIVE' });
-                    setTimeout(() => setMilestone(null), 1800);
+                    if (!isFeverRef.current) {
+                      applyWorldTheme(currentThemeIdx);
+                      const activeTheme = worldThemes[currentThemeIdx];
+                      setMilestone({ title: activeTheme.name, sub: 'ENVIRONMENT SHIFTED' });
+                      setTimeout(() => setMilestone(null), 1800);
+                    }
                   }
 
                   if (localFever >= 99.9) {
@@ -1195,7 +1202,7 @@ export default function App() {
 
       const updatedSkins = skins.map(s => (s.id === item.id ? { ...s, unlocked: true } : s));
       setSkins(updatedSkins);
-      localStorage.setItem('split_skins_v2', JSON.stringify(updatedSkins));
+      localStorage.setItem('split_shards_v2', JSON.stringify(updatedSkins));
       setEquippedSkinId(item.id);
       localStorage.setItem('split_equipped_skin_v2', item.id);
       engineRef.current?.updateEquippedMesh(item);
