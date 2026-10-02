@@ -296,6 +296,7 @@ body {
   font-style: italic;
   letter-spacing: -1px;
   background: linear-gradient(90deg, #ff2a6d, #00e5ff);
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 4px;
