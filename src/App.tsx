@@ -402,10 +402,10 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- THREE.SCENE & REFINED REACTION LOGIC ---
+    // --- THREE.SCENE & RICH ENVIRONMENT SETUP ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030408');
-    scene.fog = new THREE.FogExp2('#030408', 0.013);
+    scene.fog = new THREE.FogExp2('#030408', 0.011);
 
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 24.0, 75.0);
@@ -425,19 +425,49 @@ export default function App() {
     renderer.toneMappingExposure = 1.45;
     mountRef.current.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xdbeafe, 0.8));
+    scene.add(new THREE.AmbientLight(0xdbeafe, 0.9));
     const mainLight = new THREE.DirectionalLight(0xfffaed, 1.8);
     mainLight.position.set(12, 32, 18);
     scene.add(mainLight);
 
-    const sunGeo = new THREE.CircleGeometry(22, 48);
-    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, transparent: true, opacity: 0.45 });
+    const sunGeo = new THREE.CircleGeometry(26, 48);
+    const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, transparent: true, opacity: 0.55 });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
-    sunMesh.position.set(0, 16, -140);
+    sunMesh.position.set(0, 20, -160);
     scene.add(sunMesh);
 
+    // RICH BACKGROUND ENVIRONMENT PROPS (Floating neon pillars & planetary structures in the voids)
+    const envGroup = new THREE.Group();
+    scene.add(envGroup);
+
+    interface EnvPillar {
+      mesh: THREE.Mesh;
+      baseX: number;
+      z: number;
+    }
+    const envPillars: EnvPillar[] = [];
+    const pillarGeom = new THREE.BoxGeometry(1.2, 18, 1.2);
+
+    for (let i = 0; i < 24; i++) {
+      const isLeft = i % 2 === 0;
+      const baseX = isLeft ? -9.5 - Math.random() * 6 : 9.5 + Math.random() * 6;
+      const z = -i * 12 - Math.random() * 8;
+      
+      const pMat = new THREE.MeshStandardMaterial({
+        color: i % 3 === 0 ? 0xff2a6d : i % 3 === 1 ? 0x00e5ff : 0xa855f7,
+        emissive: i % 3 === 0 ? 0xff2a6d : i % 3 === 1 ? 0x00e5ff : 0xa855f7,
+        emissiveIntensity: 1.8,
+        roughness: 0.2,
+        metalness: 0.8
+      });
+      const pillar = new THREE.Mesh(pillarGeom, pMat);
+      pillar.position.set(baseX, 4 + Math.random() * 4, z);
+      envGroup.add(pillar);
+      envPillars.push({ mesh: pillar, baseX, z });
+    }
+
     const trackFloor = new THREE.Mesh(
-      new THREE.PlaneGeometry(10.5, 280),
+      new THREE.PlaneGeometry(10.5, 300),
       new THREE.MeshStandardMaterial({ 
         color: 0x070914, 
         roughness: 0.15, 
@@ -450,7 +480,7 @@ export default function App() {
     trackFloor.position.set(0, -0.02, -50);
     scene.add(trackFloor);
 
-    let gridHelper = new THREE.GridHelper(280, 70, 0x00e5ff, 0x151c36);
+    let gridHelper = new THREE.GridHelper(300, 75, 0x00e5ff, 0x151c36);
     gridHelper.position.set(0, 0.01, 0);
     scene.add(gridHelper);
 
@@ -460,7 +490,7 @@ export default function App() {
     [-2.0, 0.0, 2.0].forEach((lx, idx) => {
       const lineGeo = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(lx, 0.03, 10),
-        new THREE.Vector3(lx, 0.03, -130),
+        new THREE.Vector3(lx, 0.03, -140),
       ]);
       const lineMat = new THREE.LineBasicMaterial({
         color: idx === 1 ? 0xff2a6d : 0x00e5ff,
@@ -470,20 +500,20 @@ export default function App() {
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
 
-    const dustCount = 45;
+    const dustCount = 60;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
-      dustPositions[i] = (Math.random() - 0.5) * 24;
-      dustPositions[i + 1] = Math.random() * 8;
-      dustPositions[i + 2] = (Math.random() - 0.5) * 180;
+      dustPositions[i] = (Math.random() - 0.5) * 32;
+      dustPositions[i + 1] = Math.random() * 12;
+      dustPositions[i + 2] = (Math.random() - 0.5) * 200;
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustMat = new THREE.PointsMaterial({
-      size: 0.18,
+      size: 0.22,
       color: 0x00ffff,
       transparent: true,
-      opacity: 0.6,
+      opacity: 0.7,
       blending: THREE.AdditiveBlending
     });
     const dustField = new THREE.Points(dustGeo, dustMat);
@@ -632,7 +662,7 @@ export default function App() {
           metalness: 0.5
         });
 
-        const radius = 0.52; // slightly more forgiving hit zone
+        const radius = 0.52;
 
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
@@ -681,17 +711,24 @@ export default function App() {
     let lastInputTime = 0;
 
     const worldThemes = [
-      { bg: '#030408', sun: 0xff007f },
-      { bg: '#080214', sun: 0x06b6d4 },
-      { bg: '#02100d', sun: 0xfacc15 },
-      { bg: '#140702', sun: 0xff2a6d },
+      { bg: '#030408', sun: 0xff007f, pillarColor: 0xff2a6d },
+      { bg: '#080214', sun: 0x06b6d4, pillarColor: 0x00e5ff },
+      { bg: '#02100d', sun: 0xfacc15, pillarColor: 0x10b981 },
+      { bg: '#140702', sun: 0xff4500, pillarColor: 0xa855f7 },
     ];
 
     const applyWorldTheme = (themeIdx: number) => {
       const th = worldThemes[themeIdx % worldThemes.length];
       scene.background = new THREE.Color(th.bg);
-      scene.fog = new THREE.FogExp2(th.bg, 0.013);
+      scene.fog = new THREE.FogExp2(th.bg, 0.011);
       sunMesh.material.color.setHex(th.sun);
+      
+      envPillars.forEach((p, idx) => {
+        const mat = p.mesh.material as THREE.MeshStandardMaterial;
+        const c = idx % 2 === 0 ? th.sun : th.pillarColor;
+        mat.color.setHex(c);
+        mat.emissive.setHex(c);
+      });
     };
 
     const triggerFeverOverdrive = () => {
@@ -743,7 +780,7 @@ export default function App() {
     const triggerSwap = () => {
       if (gameStateRef.current !== 'PLAYING') return;
       const now = performance.now();
-      if (now - lastInputTime < 55) return; // Clean input debounce
+      if (now - lastInputTime < 55) return;
       lastInputTime = now;
 
       initAudio();
@@ -755,7 +792,7 @@ export default function App() {
     const triggerSpread = () => {
       if (gameStateRef.current !== 'PLAYING') return;
       const now = performance.now();
-      if (now - lastInputTime < 55) return; // Clean input debounce
+      if (now - lastInputTime < 55) return;
       lastInputTime = now;
 
       initAudio();
@@ -916,10 +953,20 @@ export default function App() {
         camera.position.y += (3.2 - camera.position.y) * 0.1;
       }
 
+      // Animate Environment Pillars in the voids
+      envPillars.forEach(p => {
+        p.z += speed * dt;
+        if (p.z > 15) {
+          p.z = -250;
+        }
+        p.mesh.position.z = p.z;
+        p.mesh.rotation.y += dt * 0.5;
+      });
+
       const dustPos = dustGeo.attributes.position.array as Float32Array;
       for (let i = 2; i < dustPos.length; i += 3) {
         dustPos[i] += speed * 1.5 * dt;
-        if (dustPos[i] > 20) dustPos[i] = -180;
+        if (dustPos[i] > 20) dustPos[i] = -200;
       }
       dustGeo.attributes.position.needsUpdate = true;
 
@@ -1003,7 +1050,7 @@ export default function App() {
         }
         camera.updateProjectionMatrix();
 
-        // Continuous Collision Detection with Smooth Acceleration Curve
+        // Continuous Collision Detection
         for (let i = gates.length - 1; i >= 0; i--) {
           const gate = gates[i];
           const prevZ = gate.z;
