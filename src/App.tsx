@@ -117,11 +117,13 @@ export default function App() {
   const [bestScore, setBestScore] = useState(Number(localStorage.getItem('split_best') || 0));
   const [shards, setShards] = useState(Number(localStorage.getItem('split_shards') || 0));
   const [gatesCleared, setGatesCleared] = useState(0);
+  const [combo, setCombo] = useState(1);
   const [feverPct, setFeverPct] = useState(0);
   const [isFever, setIsFever] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [tutorialHint, setTutorialHint] = useState<string | null>(null);
   const [milestone, setMilestone] = useState<{ title: string; sub: string } | null>(null);
+  const [floatingTexts, setFloatingTexts] = useState<{ id: number; text: string; x: number; y: number }[]>([]);
 
   const [gameState, setGameState] = useState<'INTRO' | 'START' | 'PLAYING' | 'GAMEOVER'>('INTRO');
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -155,12 +157,18 @@ export default function App() {
   } | null>(null);
 
   useEffect(() => {
-    const handleWindowResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
+    const handleWindowResize = () => setIsMobile(window.innerWidth <= 768);
     window.addEventListener('resize', handleWindowResize);
     return () => window.removeEventListener('resize', handleWindowResize);
   }, []);
+
+  const spawnFloatingText = (text: string, clientX = window.innerWidth / 2, clientY = window.innerHeight * 0.4) => {
+    const id = Date.now() + Math.random();
+    setFloatingTexts(prev => [...prev, { id, text, x: clientX, y: clientY }]);
+    setTimeout(() => {
+      setFloatingTexts(prev => prev.filter(item => item.id !== id));
+    }, 900);
+  };
 
   useEffect(() => {
     if (!mountRef.current) return;
@@ -394,7 +402,7 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- 2. THREE.JS SCENE SETUP ---
+    // --- THREE.SCENE & JUICE SHAKE ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030408');
     scene.fog = new THREE.FogExp2('#030408', 0.013);
@@ -402,6 +410,13 @@ export default function App() {
     const camera = new THREE.PerspectiveCamera(72, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 24.0, 75.0);
     camera.lookAt(0, 1.2, -18.0);
+
+    let shakeTimer = 0;
+    let shakeIntensity = 0;
+    const triggerCameraShake = (intensity = 0.6, duration = 0.25) => {
+      shakeIntensity = intensity;
+      shakeTimer = duration;
+    };
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -447,17 +462,6 @@ export default function App() {
     gridHelper.position.set(0, 0.01, 0);
     scene.add(gridHelper);
 
-    const curbs: THREE.Mesh[] = [];
-    [-5.25, 5.25].forEach(x => {
-      const curb = new THREE.Mesh(
-        new THREE.BoxGeometry(0.3, 0.45, 280),
-        new THREE.MeshStandardMaterial({ color: 0x00e5ff, emissive: 0x00e5ff, emissiveIntensity: 1.6, roughness: 0.1 })
-      );
-      curb.position.set(x, 0.22, -50);
-      scene.add(curb);
-      curbs.push(curb);
-    });
-
     const checkIsMobile = () => window.innerWidth <= 768;
     const LANE_CENTERS = checkIsMobile() ? [-1.9, -0.65, 0.65, 1.9] : [-3.0, -1.0, 1.0, 3.0];
 
@@ -474,23 +478,7 @@ export default function App() {
       scene.add(new THREE.Line(lineGeo, lineMat));
     });
 
-    for (let z = -120; z <= 20; z += 18) {
-      [-6.8, 6.8].forEach(px => {
-        const pylon = new THREE.Mesh(
-          new THREE.BoxGeometry(0.28, 4.0, 0.28),
-          new THREE.MeshStandardMaterial({
-            color: px < 0 ? 0xff2a6d : 0x00e5ff,
-            emissive: px < 0 ? 0xff2a6d : 0x00e5ff,
-            emissiveIntensity: 1.2,
-            roughness: 0.2,
-          })
-        );
-        pylon.position.set(px, 2.0, z);
-        scene.add(pylon);
-      });
-    }
-
-    const dustCount = 35;
+    const dustCount = 45;
     const dustGeo = new THREE.BufferGeometry();
     const dustPositions = new Float32Array(dustCount * 3);
     for (let i = 0; i < dustCount * 3; i += 3) {
@@ -500,10 +488,10 @@ export default function App() {
     }
     dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPositions, 3));
     const dustMat = new THREE.PointsMaterial({
-      size: 0.16,
+      size: 0.18,
       color: 0x00ffff,
       transparent: true,
-      opacity: 0.5,
+      opacity: 0.6,
       blending: THREE.AdditiveBlending
     });
     const dustField = new THREE.Points(dustGeo, dustMat);
@@ -537,7 +525,7 @@ export default function App() {
         new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 2.2,
+          emissiveIntensity: 2.5,
           roughness: 0.05,
           metalness: 0.8,
         })
@@ -546,7 +534,7 @@ export default function App() {
 
       const ring = new THREE.Mesh(
         new THREE.TorusGeometry(0.58, 0.03, 16, 36),
-        new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 2.5 })
+        new THREE.MeshStandardMaterial({ color: colorHex, emissive: colorHex, emissiveIntensity: 3.0 })
       );
       g.add(ring);
 
@@ -569,15 +557,15 @@ export default function App() {
       parentCoreBlue.add(blueMeshInstance.group);
     };
 
-    const maxParticles = 22;
+    const maxParticles = 25;
     const trailGeo = new THREE.BufferGeometry();
     const trailPositions = new Float32Array(maxParticles * 3 * 2);
     trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
     const trailMat = new THREE.PointsMaterial({
-      size: 0.24,
+      size: 0.28,
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.8,
       blending: THREE.AdditiveBlending,
     });
     const trailPoints = new THREE.Points(trailGeo, trailMat);
@@ -593,20 +581,20 @@ export default function App() {
       life: number;
     }
     const shatterParticles: ShatterParticle[] = [];
-    const shatterGeom = new THREE.TetrahedronGeometry(0.28, 0);
-    const shatterMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 3.0 });
+    const shatterGeom = new THREE.TetrahedronGeometry(0.32, 0);
+    const shatterMat = new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 3.5 });
 
     const spawn3DShatterExplosion = (x: number, y: number, z: number) => {
-      for (let p = 0; p < 16; p++) {
+      for (let p = 0; p < 20; p++) {
         const frag = new THREE.Mesh(shatterGeom, shatterMat);
         frag.position.set(x + (Math.random() - 0.5) * 4, y, z);
         scene.add(frag);
         shatterParticles.push({
           mesh: frag,
-          vx: (Math.random() - 0.5) * 16,
-          vy: Math.random() * 8 + 4,
-          vz: -Math.random() * 12 + 2,
-          life: 0.55,
+          vx: (Math.random() - 0.5) * 18,
+          vy: Math.random() * 10 + 4,
+          vz: -Math.random() * 14 + 2,
+          life: 0.6,
         });
       }
     };
@@ -623,7 +611,6 @@ export default function App() {
 
     const gates: Gate3D[] = [];
 
-    // --- CIRCULAR GATES WITH LOCKED COLORS ---
     const createGate = (z: number, redLane: number, blueLane: number): Gate3D => {
       const group = new THREE.Group();
       
@@ -632,7 +619,7 @@ export default function App() {
         roughness: 0.15, 
         metalness: 0.95,
         emissive: 0x0f172a,
-        emissiveIntensity: 0.8
+        emissiveIntensity: 1.0
       });
 
       const outerRingGeo = new THREE.TorusGeometry(5.3, 0.14, 24, 64);
@@ -648,7 +635,7 @@ export default function App() {
         const pMat = new THREE.MeshStandardMaterial({
           color: colorHex,
           emissive: colorHex,
-          emissiveIntensity: 2.8,
+          emissiveIntensity: 3.2,
           roughness: 0.1,
           metalness: 0.5
         });
@@ -663,7 +650,7 @@ export default function App() {
         const diskMat = new THREE.MeshBasicMaterial({ 
           color: colorHex, 
           transparent: true, 
-          opacity: 0.32, 
+          opacity: 0.38, 
           side: THREE.DoubleSide 
         });
         const diskMesh = new THREE.Mesh(diskGeo, diskMat);
@@ -671,7 +658,7 @@ export default function App() {
 
         const shard = new THREE.Mesh(
           new THREE.OctahedronGeometry(0.22, 0),
-          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2.5 })
+          new THREE.MeshStandardMaterial({ color: 0xffcc00, emissive: 0xffcc00, emissiveIntensity: 2.8 })
         );
         shard.position.set(x, 1.0, 0);
         shardGroup.add(shard);
@@ -692,6 +679,7 @@ export default function App() {
 
     let localScore = 0;
     let localGatesCleared = 0;
+    let localCombo = 1;
     let localFever = 0;
     let feverDuration = 5.0;
     let speed = 13;
@@ -720,16 +708,17 @@ export default function App() {
       setIsFever(true);
 
       playFeverBassDrop();
+      triggerCameraShake(1.0, 0.5);
 
       const flashEl = document.getElementById('fever-flash-fx');
       if (flashEl) {
-        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.45) 0%, rgba(255, 42, 109, 0.2) 60%, transparent 80%)';
+        flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 204, 0, 0.5) 0%, rgba(255, 42, 109, 0.25) 60%, transparent 80%)';
         flashEl.classList.add('flash');
-        setTimeout(() => flashEl.classList.remove('flash'), 450);
+        setTimeout(() => flashEl.classList.remove('flash'), 500);
       }
 
       sunMesh.material.color.setHex(0xffcc00);
-      sunMesh.material.opacity = 0.75;
+      sunMesh.material.opacity = 0.85;
       trailMat.color.setHex(0xffcc00);
 
       if (window.CrazyGames?.SDK?.game) {
@@ -763,7 +752,7 @@ export default function App() {
       initAudio();
       isSwapped = !isSwapped;
       playSwapFoley();
-      if (navigator.vibrate) navigator.vibrate(10);
+      if (navigator.vibrate) navigator.vibrate(12);
     };
 
     const triggerSpread = () => {
@@ -771,7 +760,7 @@ export default function App() {
       initAudio();
       isSpread = !isSpread;
       playSpreadFoley();
-      if (navigator.vibrate) navigator.vibrate(10);
+      if (navigator.vibrate) navigator.vibrate(12);
     };
 
     const spawnNextGate = (zPos: number) => {
@@ -798,12 +787,12 @@ export default function App() {
       setTimeout(() => {
         gates.forEach(g => scene.remove(g.group));
         gates.length = 0;
-
         shatterParticles.forEach(p => scene.remove(p.mesh));
         shatterParticles.length = 0;
 
         localScore = 0;
         localGatesCleared = 0;
+        localCombo = 1;
         speed = 13;
         isSwapped = false;
         isSpread = false;
@@ -812,6 +801,7 @@ export default function App() {
 
         setScore(0);
         setGatesCleared(0);
+        setCombo(1);
         setMilestone(null);
         gameStateRef.current = 'PLAYING';
         setGameState('PLAYING');
@@ -845,6 +835,7 @@ export default function App() {
       gameStateRef.current = 'START';
       setGameState('START');
       setScore(0);
+      setCombo(1);
       setTutorialHint(null);
       setMilestone(null);
       currentThemeIdx = 0;
@@ -915,6 +906,15 @@ export default function App() {
       const dt = Math.min(0.05, (time - lastTime) / 1000);
       lastTime = time;
 
+      if (shakeTimer > 0) {
+        shakeTimer -= dt;
+        camera.position.x = (Math.random() - 0.5) * shakeIntensity * 1.5;
+        camera.position.y = 3.2 + (Math.random() - 0.5) * shakeIntensity * 1.5;
+      } else {
+        camera.position.x += (0 - camera.position.x) * 0.1;
+        camera.position.y += (3.2 - camera.position.y) * 0.1;
+      }
+
       const dustPos = dustGeo.attributes.position.array as Float32Array;
       for (let i = 2; i < dustPos.length; i += 3) {
         dustPos[i] += speed * 1.5 * dt;
@@ -939,17 +939,13 @@ export default function App() {
 
       if (gameStateRef.current === 'INTRO') {
         camera.position.z += (7.8 - camera.position.z) * (1 - Math.exp(-4 * dt));
-        camera.position.y += (3.2 - camera.position.y) * (1 - Math.exp(-4 * dt));
-        camera.lookAt(0, 1.2, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 20 * dt) % 4;
-
         parentCoreRed.rotation.y += dt * 2.0;
         parentCoreBlue.rotation.y += dt * 2.0;
       } else if (gameStateRef.current === 'START') {
         camera.position.set(0, 3.2, 7.8);
         camera.lookAt(0, 1.2, -18.0);
         gridHelper.position.z = (gridHelper.position.z + 15 * dt) % 4;
-
         parentCoreRed.rotation.y += dt * 1.5;
         parentCoreBlue.rotation.y += dt * 1.5;
         redMeshInstance.ring.rotation.x += dt * 2.0;
@@ -997,12 +993,10 @@ export default function App() {
         trailGeo.attributes.position.needsUpdate = true;
 
         if (isFeverRef.current) {
-          camera.fov += (82 - camera.fov) * (1 - Math.exp(-8 * dt));
+          camera.fov += (84 - camera.fov) * (1 - Math.exp(-8 * dt));
           feverDuration -= dt;
           setFeverPct(Math.max(0, (feverDuration / 5.0) * 100));
-          if (feverDuration <= 0) {
-            restoreNormalAesthetics();
-          }
+          if (feverDuration <= 0) restoreNormalAesthetics();
         } else {
           camera.fov += (72 - camera.fov) * (1 - Math.exp(-8 * dt));
         }
@@ -1027,20 +1021,28 @@ export default function App() {
               if (isFeverRef.current) {
                 gate.shattered = true;
                 scene.remove(gate.group);
-                localScore += 2;
+                localScore += 2 * localCombo;
                 localGatesCleared += 1;
                 spawn3DShatterExplosion(0, 1.0, 0);
                 playShatterHeavy();
+                triggerCameraShake(0.4, 0.15);
+                spawnFloatingText(`+${2 * localCombo} OVERDRIVE`);
                 if (navigator.vibrate) navigator.vibrate([25, 20, 30]);
               } else {
                 const matched = targets.r === gate.laneRed && targets.b === gate.laneBlue;
 
                 if (matched) {
-                  localScore += 1;
+                  localScore += localCombo;
                   localGatesCleared += 1;
+                  localCombo = Math.min(8, localCombo + 1);
+                  setCombo(localCombo);
+
                   localFever = Math.min(100, localFever + 100 / 6);
                   setFeverPct(localFever);
                   playGateChime();
+                  triggerCameraShake(0.22, 0.1);
+                  spawnFloatingText(`+${localCombo} HIT!`);
+
                   if (navigator.vibrate) navigator.vibrate(12);
 
                   setShards(s => {
@@ -1058,7 +1060,7 @@ export default function App() {
                     setMilestone({ title: 'HYPER VELOCITY', sub: 'WORLD THEME SHIFTED' });
                     setTimeout(() => setMilestone(null), 1800);
                   } else if (localScore === 25) {
-                    setMilestone({ title: 'NEURAL MASTER', sub: 'COMBO X2 MULTIPLIER' });
+                    setMilestone({ title: 'NEURAL MASTER', sub: 'COMBO STREAK ACTIVE' });
                     setTimeout(() => setMilestone(null), 1800);
                   }
 
@@ -1066,16 +1068,21 @@ export default function App() {
                     triggerFeverOverdrive();
                   }
                 } else {
+                  localCombo = 1;
+                  setCombo(1);
+
                   const flashEl = document.getElementById('fever-flash-fx');
                   if (flashEl) {
-                    flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 42, 109, 0.8) 0%, rgba(255, 0, 0, 0.5) 70%)';
+                    flashEl.style.background = 'radial-gradient(circle at center, rgba(255, 42, 109, 0.85) 0%, rgba(255, 0, 0, 0.5) 70%)';
                     flashEl.classList.add('flash');
                   }
 
                   gameStateRef.current = 'GAMEOVER';
                   setGameState('GAMEOVER');
                   playDeathImpact();
-                  if (navigator.vibrate) navigator.vibrate([60, 50, 90]);
+                  triggerCameraShake(1.2, 0.4);
+
+                  if (navigator.vibrate) navigator.vibrate([70, 50, 100]);
 
                   setBestScore(prev => {
                     const next = Math.max(prev, localScore);
@@ -1159,6 +1166,12 @@ export default function App() {
       <div id="fever-flash-fx" />
       <div ref={mountRef} id="canvas-viewport" />
 
+      {floatingTexts.map(ft => (
+        <div key={ft.id} className="floating-score-popup" style={{ left: ft.x, top: ft.y }}>
+          {ft.text}
+        </div>
+      ))}
+
       {tutorialHint && (
         <div className="onboarding-hint-banner">
           {tutorialHint}
@@ -1172,7 +1185,7 @@ export default function App() {
         </div>
       )}
 
-      {/* TOP IN-GAME HUD - VISIBLE ON PLAYING AND START */}
+      {/* TOP IN-GAME HUD */}
       <div className={`hud-layer ${gameState === 'PLAYING' || gameState === 'START' ? 'active' : ''}`}>
         <div className="top-header">
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -1180,6 +1193,13 @@ export default function App() {
               <span>BEST:</span>
               <span className="gold">{bestScore}</span>
             </div>
+
+            {combo > 1 && (
+              <div className="pill-card combo-pill">
+                <span>COMBO:</span>
+                <span className="cyan">x{combo}</span>
+              </div>
+            )}
 
             <button
               className="hud-btn-icon"
@@ -1341,21 +1361,17 @@ export default function App() {
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 14, margin: '10px 0 20px 0', color: '#cbd5e1', fontSize: 13.5, lineHeight: 1.5, textAlign: 'left' }}>
               <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
                 <strong style={{ color: '#00e5ff', display: 'block', marginBottom: 4 }}>🎯 OBJECTIVE</strong>
-                Match your dual cores to the correct incoming colored portal rings. Clear gates to build your score and fill your Fever gauge.
+                Match your dual cores to incoming portal rings. Build streak multipliers to maximize your high score.
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
-                <strong style={{ color: '#ff2a6d', display: 'block', marginBottom: 4 }}>🎮 CONTROLS ({isMobile ? 'MOBILE' : 'DESKTOP'})</strong>
-                {isMobile ? (
-                  <span>• <b>SWAP [TAP]:</b> Inverts your core positions instantly.<br />• <b>SPREAD [HOLD/TAP]:</b> Toggles wide or narrow lane formation.</span>
-                ) : (
-                  <span>• <b>SWAP:</b> Press <span className="keycap">A</span>, <span className="keycap">Q</span>, or <span className="keycap">←</span>.<br />• <b>SPREAD:</b> Press <span className="keycap">D</span>, <span className="keycap">→</span>, or <span className="keycap">SPACE</span>.</span>
-                )}
+                <strong style={{ color: '#ff2a6d', display: 'block', marginBottom: 4 }}>🎮 CONTROLS</strong>
+                <span>• <b>SWAP:</b> A / Q / Left Arrow<br />• <b>SPREAD:</b> D / Right Arrow / Space</span>
               </div>
 
               <div style={{ background: 'rgba(255,255,255,0.04)', padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.1)' }}>
-                <strong style={{ color: '#ffcc00', display: 'block', marginBottom: 4 }}>⚡ FEVER OVERDRIVE</strong>
-                Filling your gauge triggers Overdrive mode, doubling points and letting you smash straight through incoming gates automatically!
+                <strong style={{ color: '#ffcc00', display: 'block', marginBottom: 4 }}>⚡ OVERDRIVE</strong>
+                Filling your Fever gauge activates Overdrive mode, doubling score multipliers and letting you smash gates!
               </div>
             </div>
 
@@ -1366,7 +1382,7 @@ export default function App() {
         </div>
       )}
 
-      {/* 6-ARCHETYPE COSMETICS LOCKER */}
+      {/* COSMETICS LOCKER */}
       {isShopOpen && (
         <div className="modal-overlay">
           <div className="shop-card">
