@@ -402,7 +402,7 @@ export default function App() {
       osc.stop(now + 0.45);
     };
 
-    // --- THREE.SCENE & JUICE SHAKE ---
+    // --- THREE.SCENE & REFINED REACTION LOGIC ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color('#030408');
     scene.fog = new THREE.FogExp2('#030408', 0.013);
@@ -413,7 +413,7 @@ export default function App() {
 
     let shakeTimer = 0;
     let shakeIntensity = 0;
-    const triggerCameraShake = (intensity = 0.6, duration = 0.25) => {
+    const triggerCameraShake = (intensity = 0.5, duration = 0.2) => {
       shakeIntensity = intensity;
       shakeTimer = duration;
     };
@@ -429,14 +429,6 @@ export default function App() {
     const mainLight = new THREE.DirectionalLight(0xfffaed, 1.8);
     mainLight.position.set(12, 32, 18);
     scene.add(mainLight);
-
-    const pinkNeonLight = new THREE.PointLight(0xff2a6d, 3.5, 60);
-    pinkNeonLight.position.set(-6, 4, -20);
-    scene.add(pinkNeonLight);
-
-    const cyanNeonLight = new THREE.PointLight(0x00e5ff, 3.5, 60);
-    cyanNeonLight.position.set(6, 4, -20);
-    scene.add(cyanNeonLight);
 
     const sunGeo = new THREE.CircleGeometry(22, 48);
     const sunMat = new THREE.MeshBasicMaterial({ color: 0xff007f, transparent: true, opacity: 0.45 });
@@ -640,7 +632,7 @@ export default function App() {
           metalness: 0.5
         });
 
-        const radius = 0.50;
+        const radius = 0.52; // slightly more forgiving hit zone
 
         const ringGeo = new THREE.TorusGeometry(radius, 0.08, 16, 48);
         const ringMesh = new THREE.Mesh(ringGeo, pMat);
@@ -682,10 +674,11 @@ export default function App() {
     let localCombo = 1;
     let localFever = 0;
     let feverDuration = 5.0;
-    let speed = 13;
+    let speed = 12;
     let isSwapped = false;
     let isSpread = false;
     let currentThemeIdx = 0;
+    let lastInputTime = 0;
 
     const worldThemes = [
       { bg: '#030408', sun: 0xff007f },
@@ -708,7 +701,7 @@ export default function App() {
       setIsFever(true);
 
       playFeverBassDrop();
-      triggerCameraShake(1.0, 0.5);
+      triggerCameraShake(0.9, 0.4);
 
       const flashEl = document.getElementById('fever-flash-fx');
       if (flashEl) {
@@ -749,6 +742,10 @@ export default function App() {
 
     const triggerSwap = () => {
       if (gameStateRef.current !== 'PLAYING') return;
+      const now = performance.now();
+      if (now - lastInputTime < 55) return; // Clean input debounce
+      lastInputTime = now;
+
       initAudio();
       isSwapped = !isSwapped;
       playSwapFoley();
@@ -757,6 +754,10 @@ export default function App() {
 
     const triggerSpread = () => {
       if (gameStateRef.current !== 'PLAYING') return;
+      const now = performance.now();
+      if (now - lastInputTime < 55) return; // Clean input debounce
+      lastInputTime = now;
+
       initAudio();
       isSpread = !isSpread;
       playSpreadFoley();
@@ -793,7 +794,7 @@ export default function App() {
         localScore = 0;
         localGatesCleared = 0;
         localCombo = 1;
-        speed = 13;
+        speed = 12;
         isSwapped = false;
         isSpread = false;
         currentThemeIdx = 0;
@@ -811,7 +812,7 @@ export default function App() {
         setTimeout(() => setTutorialHint(null), 4000);
 
         for (let i = 1; i <= 5; i++) {
-          spawnNextGate(-i * 45);
+          spawnNextGate(-i * 48);
         }
 
         if (window.CrazyGames?.SDK?.game) {
@@ -956,7 +957,7 @@ export default function App() {
 
         gridHelper.position.z = (gridHelper.position.z + speed * dt) % 4;
 
-        const smoothLerpFactor = 1 - Math.exp(-32 * dt);
+        const smoothLerpFactor = 1 - Math.exp(-36 * dt);
         const targets = resolveLanes();
         parentCoreRed.position.x += (LANE_CENTERS[targets.r] - parentCoreRed.position.x) * smoothLerpFactor;
         parentCoreBlue.position.x += (LANE_CENTERS[targets.b] - parentCoreBlue.position.x) * smoothLerpFactor;
@@ -1002,7 +1003,7 @@ export default function App() {
         }
         camera.updateProjectionMatrix();
 
-        // Continuous Collision Detection
+        // Continuous Collision Detection with Smooth Acceleration Curve
         for (let i = gates.length - 1; i >= 0; i--) {
           const gate = gates[i];
           const prevZ = gate.z;
@@ -1025,7 +1026,7 @@ export default function App() {
                 localGatesCleared += 1;
                 spawn3DShatterExplosion(0, 1.0, 0);
                 playShatterHeavy();
-                triggerCameraShake(0.4, 0.15);
+                triggerCameraShake(0.35, 0.12);
                 spawnFloatingText(`+${2 * localCombo} OVERDRIVE`);
                 if (navigator.vibrate) navigator.vibrate([25, 20, 30]);
               } else {
@@ -1040,7 +1041,7 @@ export default function App() {
                   localFever = Math.min(100, localFever + 100 / 6);
                   setFeverPct(localFever);
                   playGateChime();
-                  triggerCameraShake(0.22, 0.1);
+                  triggerCameraShake(0.18, 0.08);
                   spawnFloatingText(`+${localCombo} HIT!`);
 
                   if (navigator.vibrate) navigator.vibrate(12);
@@ -1110,13 +1111,13 @@ export default function App() {
               ? gates.reduce((min, g) => Math.min(min, g.z), gates[0].z) 
               : 0;
 
-            const safeMinSpacing = 42;
-            const spacing = Math.max(safeMinSpacing, 50 - localScore * 0.1);
+            const safeMinSpacing = 44;
+            const spacing = Math.max(safeMinSpacing, 52 - localScore * 0.15);
             spawnNextGate(furthestZ - spacing);
           }
         }
 
-        speed = 13 + Math.min(12, localScore * 0.28);
+        speed = 12 + Math.min(10, localScore * 0.22);
       }
 
       renderer.render(scene, camera);
